@@ -1,21 +1,21 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { 
-  FadeIn, 
-  FadeInUp, 
-  FadeInDown, 
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  FadeInDown,
   SlideInRight,
-  SlideOutRight
+  SlideOutRight,
 } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -24,7 +24,9 @@ export default function FoodSearchScreen() {
   const { mealId, mealTitle } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [scanning, setScanning] = useState(false);
-  const [scanningType, setScanningType] = useState<"barcode" | "meal" | null>(null);
+  const [scanningType, setScanningType] = useState<"barcode" | "meal" | null>(
+    null
+  );
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [recognizedFoods, setRecognizedFoods] = useState<string[]>([]);
@@ -99,7 +101,7 @@ export default function FoodSearchScreen() {
       setIsSearching(true);
       // Simulate API search delay
       setTimeout(() => {
-        const results = foodDatabase.filter(food => 
+        const results = foodDatabase.filter((food) =>
           food.name.toLowerCase().includes(query.toLowerCase())
         );
         setSearchResults(results);
@@ -113,11 +115,11 @@ export default function FoodSearchScreen() {
   const handleFoodSelect = (food: any) => {
     router.push({
       pathname: "/diet/food-details",
-      params: { 
+      params: {
         foodId: food.id.toString(),
-        mealId, 
-        mealTitle 
-      }
+        mealId,
+        mealTitle,
+      },
     });
   };
 
@@ -129,7 +131,11 @@ export default function FoodSearchScreen() {
     if (type === "meal") {
       setTimeout(() => {
         // Pretend the AI recognized these foods
-        setRecognizedFoods(["Grilled Chicken Breast", "Brown Rice", "Mixed Vegetables"]);
+        setRecognizedFoods([
+          "Grilled Chicken Breast",
+          "Brown Rice",
+          "Mixed Vegetables",
+        ]);
       }, 3000);
     } else {
       // For barcode, we would normally use a barcode scanner library
@@ -150,17 +156,15 @@ export default function FoodSearchScreen() {
   };
 
   const selectRecognizedFood = (foodName: string) => {
-    const food = foodDatabase.find(f => f.name === foodName) || foodDatabase[0];
+    const food =
+      foodDatabase.find((f) => f.name === foodName) || foodDatabase[0];
     handleFoodSelect(food);
   };
 
   return (
     <View className="flex-1 bg-dark-900">
       {/* Header */}
-      <View 
-        style={{ paddingTop: insets.top }} 
-        className="px-6 pt-6 pb-4"
-      >
+      <View style={{ paddingTop: insets.top }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -176,8 +180,8 @@ export default function FoodSearchScreen() {
 
         {/* Search Bar */}
         {!scanning && (
-          <Animated.View 
-            entering={FadeInDown.duration(400)} 
+          <Animated.View
+            entering={FadeInDown.duration(400)}
             className="flex-row bg-dark-800 rounded-xl px-4 py-2 items-center mb-4"
           >
             <Ionicons name="search-outline" size={20} color="#777777" />
@@ -201,11 +205,11 @@ export default function FoodSearchScreen() {
       {!scanning ? (
         <>
           {/* Quick scan options */}
-          <Animated.View 
-            entering={FadeInUp.delay(100).duration(400)} 
+          <Animated.View
+            entering={FadeInUp.delay(100).duration(400)}
             className="px-6 mb-6 flex-row justify-between"
           >
-            <TouchableOpacity 
+            <TouchableOpacity
               className="bg-dark-800 rounded-2xl p-4 flex-1 mr-4 items-center justify-center"
               onPress={() => startScanning("barcode")}
             >
@@ -214,8 +218,8 @@ export default function FoodSearchScreen() {
               </View>
               <Text className="text-white font-bold">Scan Barcode</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               className="bg-dark-800 rounded-2xl p-4 flex-1 ml-4 items-center justify-center"
               onPress={() => startScanning("meal")}
             >
@@ -226,7 +230,7 @@ export default function FoodSearchScreen() {
             </TouchableOpacity>
           </Animated.View>
 
-          <ScrollView 
+          <ScrollView
             contentContainerStyle={{ paddingBottom: 120 }}
             showsVerticalScrollIndicator={false}
           >
@@ -249,8 +253,8 @@ export default function FoodSearchScreen() {
                   Search Results
                 </Text>
                 {searchResults.map((food, index) => (
-                  <Animated.View 
-                    key={food.id} 
+                  <Animated.View
+                    key={food.id}
                     entering={FadeInDown.delay(100 * index).duration(400)}
                   >
                     <TouchableOpacity
@@ -258,18 +262,32 @@ export default function FoodSearchScreen() {
                       onPress={() => handleFoodSelect(food)}
                     >
                       <View className="w-12 h-12 bg-dark-700 rounded-xl items-center justify-center mr-3">
-                        <Ionicons name="nutrition-outline" size={22} color="#BBFD00" />
+                        <Ionicons
+                          name="nutrition-outline"
+                          size={22}
+                          color="#BBFD00"
+                        />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-white font-bold">{food.name}</Text>
-                        <Text className="text-gray-400">{food.brand}, {food.serving}</Text>
+                        <Text className="text-white font-bold">
+                          {food.name}
+                        </Text>
+                        <Text className="text-gray-400">
+                          {food.brand}, {food.serving}
+                        </Text>
                       </View>
                       <View className="items-end">
                         <Text className="text-white">{food.calories} kcal</Text>
                         <View className="flex-row">
-                          <Text className="text-primary mr-1">P: {food.protein}g</Text>
-                          <Text className="text-[#FF9800] mr-1">C: {food.carbs}g</Text>
-                          <Text className="text-[#2196F3]">F: {food.fats}g</Text>
+                          <Text className="text-primary mr-1">
+                            P: {food.protein}g
+                          </Text>
+                          <Text className="text-[#FF9800] mr-1">
+                            C: {food.carbs}g
+                          </Text>
+                          <Text className="text-[#2196F3]">
+                            F: {food.fats}g
+                          </Text>
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -279,7 +297,9 @@ export default function FoodSearchScreen() {
             ) : searchQuery.length > 0 ? (
               <View className="items-center justify-center py-10">
                 <ActivityIndicator size="small" color="#BBFD00" />
-                <Text className="text-gray-400 mt-4">Type more to search...</Text>
+                <Text className="text-gray-400 mt-4">
+                  Type more to search...
+                </Text>
               </View>
             ) : (
               <View className="px-6">
@@ -296,17 +316,23 @@ export default function FoodSearchScreen() {
       ) : (
         <View className="flex-1 bg-dark-900">
           {/* Scanning overlay */}
-          <Animated.View 
-            entering={FadeIn.duration(300)} 
+          <Animated.View
+            entering={FadeIn.duration(300)}
             className="flex-1 items-center justify-center px-6"
           >
             {scanningType === "barcode" ? (
               <>
                 <View className="w-full aspect-square bg-dark-800 rounded-3xl items-center justify-center mb-6">
                   <Ionicons name="barcode-outline" size={100} color="#BBFD00" />
-                  <ActivityIndicator size="large" color="#BBFD00" className="absolute" />
+                  <ActivityIndicator
+                    size="large"
+                    color="#BBFD00"
+                    className="absolute"
+                  />
                 </View>
-                <Text className="text-white text-lg font-bold mb-2">Scanning Barcode</Text>
+                <Text className="text-white text-lg font-bold mb-2">
+                  Scanning Barcode
+                </Text>
                 <Text className="text-gray-400 text-center mb-8">
                   Position the barcode within the frame
                 </Text>
@@ -316,23 +342,35 @@ export default function FoodSearchScreen() {
                 {recognizedFoods.length === 0 ? (
                   <>
                     <View className="w-full aspect-square bg-dark-800 rounded-3xl items-center justify-center mb-6">
-                      <Ionicons name="camera-outline" size={100} color="#BBFD00" />
-                      <ActivityIndicator size="large" color="#BBFD00" className="absolute" />
+                      <Ionicons
+                        name="camera-outline"
+                        size={100}
+                        color="#BBFD00"
+                      />
+                      <ActivityIndicator
+                        size="large"
+                        color="#BBFD00"
+                        className="absolute"
+                      />
                     </View>
-                    <Text className="text-white text-lg font-bold mb-2">Analyzing Meal</Text>
+                    <Text className="text-white text-lg font-bold mb-2">
+                      Analyzing Meal
+                    </Text>
                     <Text className="text-gray-400 text-center mb-8">
                       Our AI is identifying foods in your meal
                     </Text>
                   </>
                 ) : (
-                  <Animated.View 
-                    entering={SlideInRight.duration(400)} 
+                  <Animated.View
+                    entering={SlideInRight.duration(400)}
                     className="w-full"
                   >
-                    <Text className="text-white text-lg font-bold mb-4">Foods Recognized</Text>
+                    <Text className="text-white text-lg font-bold mb-4">
+                      Foods Recognized
+                    </Text>
                     {recognizedFoods.map((food, index) => (
-                      <Animated.View 
-                        key={index} 
+                      <Animated.View
+                        key={index}
                         entering={FadeInDown.delay(100 * index).duration(400)}
                       >
                         <TouchableOpacity
@@ -340,13 +378,21 @@ export default function FoodSearchScreen() {
                           onPress={() => selectRecognizedFood(food)}
                         >
                           <View className="w-12 h-12 bg-dark-700 rounded-xl items-center justify-center mr-3">
-                            <Ionicons name="checkmark-circle-outline" size={22} color="#BBFD00" />
+                            <Ionicons
+                              name="checkmark-circle-outline"
+                              size={22}
+                              color="#BBFD00"
+                            />
                           </View>
                           <View className="flex-1">
                             <Text className="text-white font-bold">{food}</Text>
                             <Text className="text-gray-400">AI identified</Text>
                           </View>
-                          <Ionicons name="chevron-forward" size={20} color="#777777" />
+                          <Ionicons
+                            name="chevron-forward"
+                            size={20}
+                            color="#777777"
+                          />
                         </TouchableOpacity>
                       </Animated.View>
                     ))}
@@ -354,7 +400,7 @@ export default function FoodSearchScreen() {
                 )}
               </>
             )}
-            
+
             <TouchableOpacity
               onPress={cancelScan}
               className="absolute bottom-10 left-6 right-6 bg-dark-800 rounded-2xl py-4 items-center"

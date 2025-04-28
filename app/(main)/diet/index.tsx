@@ -12,14 +12,14 @@ export default function DietScreen() {
   const handleMealPress = (meal) => {
     router.push({
       pathname: "/diet/meal-details",
-      params: { 
+      params: {
         mealId: meal.title.toLowerCase(),
         mealTitle: meal.title,
         mealTime: meal.time,
         mealCalories: meal.calories,
         mealItems: meal.items,
-        mealColor: meal.color 
-      }
+        mealColor: meal.color,
+      },
     });
   };
 
@@ -203,7 +203,11 @@ export default function DietScreen() {
                         {meal.calories}{" "}
                         <Text className="text-gray-400 font-normal">kcal</Text>
                       </Text>
-                      <Ionicons name="chevron-forward" size={18} color="#777777" />
+                      <Ionicons
+                        name="chevron-forward"
+                        size={18}
+                        color="#777777"
+                      />
                     </View>
                   </View>
 
@@ -212,7 +216,7 @@ export default function DietScreen() {
                   </Text>
 
                   {!meal.complete && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       className="bg-dark-700 self-start rounded-full px-4 py-2 mt-3 ml-13"
                       onPress={(e) => {
                         e.stopPropagation();
