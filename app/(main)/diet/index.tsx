@@ -3,10 +3,25 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { router } from "expo-router";
 
 export default function DietScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("meals");
+
+  const handleMealPress = (meal) => {
+    router.push({
+      pathname: "/diet/meal-details",
+      params: { 
+        mealId: meal.title.toLowerCase(),
+        mealTitle: meal.title,
+        mealTime: meal.time,
+        mealCalories: meal.calories,
+        mealItems: meal.items,
+        mealColor: meal.color 
+      }
+    });
+  };
 
   return (
     <View className="flex-1 bg-dark-900">
@@ -14,9 +29,6 @@ export default function DietScreen() {
       <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center">
           <Text className="text-white text-2xl font-bold">Diet Plan</Text>
-          <TouchableOpacity className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center">
-            <Ionicons name="search" size={22} color="white" />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -160,6 +172,7 @@ export default function DietScreen() {
                 <TouchableOpacity
                   key={index}
                   className="bg-dark-800 rounded-3xl border border-dark-700 p-5 mb-4"
+                  onPress={() => handleMealPress(meal)}
                 >
                   <View className="flex-row justify-between items-center mb-2">
                     <View className="flex-row items-center">
@@ -185,11 +198,12 @@ export default function DietScreen() {
                       </View>
                     </View>
 
-                    <View>
-                      <Text className="text-white font-bold text-right">
+                    <View className="flex-row items-center">
+                      <Text className="text-white font-bold text-right mr-2">
                         {meal.calories}{" "}
                         <Text className="text-gray-400 font-normal">kcal</Text>
                       </Text>
+                      <Ionicons name="chevron-forward" size={18} color="#777777" />
                     </View>
                   </View>
 
@@ -198,7 +212,13 @@ export default function DietScreen() {
                   </Text>
 
                   {!meal.complete && (
-                    <TouchableOpacity className="bg-dark-700 self-start rounded-full px-4 py-2 mt-3 ml-13">
+                    <TouchableOpacity 
+                      className="bg-dark-700 self-start rounded-full px-4 py-2 mt-3 ml-13"
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        // Mark meal as eaten functionality would go here
+                      }}
+                    >
                       <Text className="text-white text-sm">Mark as eaten</Text>
                     </TouchableOpacity>
                   )}

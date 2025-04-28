@@ -138,7 +138,7 @@ export default function WelcomeScreen() {
           <Text className="text-white text-3xl font-bold text-center mb-1">
             {slides[currentIndex].title}
           </Text>
-          <Text className="text-white text-2xl font-bold text-center mb-4 text-primary">
+          <Text className="text-2xl font-bold text-center mb-4 text-primary">
             {slides[currentIndex].subtitle}
           </Text>
           <Text className="text-gray-300 text-center text-base px-4">
