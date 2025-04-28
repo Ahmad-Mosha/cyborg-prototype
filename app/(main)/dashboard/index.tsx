@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
@@ -11,7 +11,7 @@ export default function DashboardScreen() {
     <View className="flex-1 bg-dark-900">
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 10,
+          paddingTop: insets.top + 30,
           paddingBottom: 100, // Extra space for bottom tab bar
         }}
         showsVerticalScrollIndicator={false}

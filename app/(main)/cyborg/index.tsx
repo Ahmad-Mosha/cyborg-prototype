@@ -1,37 +1,46 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withTiming, 
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+  Alert,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
   withSequence,
-  withDelay,
-  FadeIn,
-  FadeInDown 
-} from 'react-native-reanimated';
+  withTiming,
+  FadeInDown,
+} from "react-native-reanimated";
+import * as ImagePicker from "expo-image-picker";
 
-const { width, height } = Dimensions.get('window');
+import { MessageType } from "@/types/cyborg";
+
+const { width, height } = Dimensions.get("window");
 
 export default function CyborgScreen() {
   const insets = useSafeAreaInsets();
-  const [question, setQuestion] = useState('');
-  const scrollViewRef = useRef(null);
+  const [question, setQuestion] = useState("");
+  const scrollViewRef = useRef<ScrollView>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [messages, setMessages] = useState([
-    { 
-      type: 'cyborg', 
+  const [messages, setMessages] = useState<MessageType[]>([
+    {
+      type: "cyborg",
       text: "Hello, I'm your Cyborg AI Personal Trainer. How can I help you with your fitness journey today?",
-      time: '9:41 AM'
-    }
+      time: "9:41 AM",
+    },
   ]);
-  
+
   // Pulse animation for the cyborg brain visualization
   const scale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.5);
-  
+
   React.useEffect(() => {
     scale.value = withRepeat(
       withSequence(
@@ -41,7 +50,7 @@ export default function CyborgScreen() {
       -1,
       true
     );
-    
+
     pulseOpacity.value = withRepeat(
       withSequence(
         withTiming(0.7, { duration: 1000 }),
@@ -51,27 +60,30 @@ export default function CyborgScreen() {
       true
     );
   }, []);
-  
+
   const pulseStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
       opacity: pulseOpacity.value,
     };
   });
-  
+
   const handleSendMessage = () => {
     if (!question.trim()) return;
-    
-    const newUserMessage = {
-      type: 'user',
-      text: question,
-      time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+
+    const newUserMessage: MessageType = {
+      type: "user",
+      text: "I've uploaded a video for analysis.",
+      time: new Date().toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
     };
-    
+
     setMessages([...messages, newUserMessage]);
-    setQuestion('');
+    setQuestion("");
     setIsProcessing(true);
-    
+
     // Simulate AI response
     setTimeout(() => {
       const demoResponses = [
@@ -79,22 +91,84 @@ export default function CyborgScreen() {
         "I've analyzed your workout data. You're making excellent progress on your upper body strength, but your leg workouts could use more intensity. Let's adjust your program.",
         "Your sleep patterns show improvement! Consistent 7+ hour nights are helping your recovery. Keep it up!",
         "I've created a custom HIIT routine for you based on your cardiovascular metrics. It's designed to increase your VO2 max within 4 weeks.",
-        "Looking at your nutrition logs, I notice you're consistently under your calorie goals. For muscle gain, try adding these high-protein snacks between meals."
+        "Looking at your nutrition logs, I notice you're consistently under your calorie goals. For muscle gain, try adding these high-protein snacks between meals.",
       ];
-      
-      const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
-      
-      const newCyborgMessage = {
-        type: 'cyborg',
+
+      const randomResponse =
+        demoResponses[Math.floor(Math.random() * demoResponses.length)];
+
+      const newCyborgMessage: MessageType = {
+        type: "cyborg",
         text: randomResponse,
-        time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
       };
-      
-      setMessages(prev => [...prev, newCyborgMessage]);
+
+      setMessages((prev) => [...prev, newCyborgMessage]);
       setIsProcessing(false);
     }, 2000);
   };
-  
+
+  const handleVideoUpload = async () => {
+    try {
+      // Request permission for accessing media library
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please allow access to your media library to upload videos."
+        );
+        return;
+      }
+
+      // Launch video picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        quality: 1,
+        allowsEditing: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedVideo = result.assets[0];
+
+        // Add a user message indicating video upload
+        const newUserMessage: MessageType = {
+          type: "user",
+          text: "I've uploaded a video for analysis.",
+          time: new Date().toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+        };
+
+        setMessages([...messages, newUserMessage]);
+        setIsProcessing(true);
+
+        // Simulate AI response to video upload
+        setTimeout(() => {
+          const videoAnalysisResponse: MessageType = {
+            type: "cyborg",
+            text: "I've analyzed your form in the video. Your squat depth is good, but try to keep your knees aligned with your toes. Also, maintain a neutral spine throughout the movement for better results and to prevent injury.",
+            time: new Date().toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            }),
+          };
+
+          setMessages((prev) => [...prev, videoAnalysisResponse]);
+          setIsProcessing(false);
+        }, 3000);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to upload video. Please try again.");
+      console.error("Video upload error:", error);
+    }
+  };
+
   React.useEffect(() => {
     // Scroll to bottom when messages change
     if (scrollViewRef.current) {
@@ -103,43 +177,42 @@ export default function CyborgScreen() {
       }, 100);
     }
   }, [messages]);
-  
+
   // Custom message bubble component
-  const MessageBubble = ({ message, index }) => {
-    const isCyborg = message.type === 'cyborg';
-    
+  const MessageBubble = ({
+    message,
+    index,
+  }: {
+    message: MessageType;
+    index: number;
+  }) => {
+    const isCyborg = message.type === "cyborg";
+
     return (
       <Animated.View
         entering={FadeInDown.delay(index * 100).duration(400)}
-        className={`mb-4 max-w-[85%] ${isCyborg ? 'self-start' : 'self-end'}`}
+        className={`mb-4 max-w-[85%] ${isCyborg ? "self-start" : "self-end"}`}
       >
-        <View 
+        <View
           className={`rounded-2xl p-4 ${
-            isCyborg 
-              ? 'bg-dark-800 rounded-tl-none' 
-              : 'bg-primary rounded-tr-none'
+            isCyborg
+              ? "bg-dark-800 rounded-tl-none"
+              : "bg-primary rounded-tr-none"
           }`}
         >
-          <Text 
-            className={isCyborg ? 'text-white' : 'text-dark-900'}
-          >
+          <Text className={isCyborg ? "text-white" : "text-dark-900"}>
             {message.text}
           </Text>
         </View>
-        <Text className="text-gray-500 text-xs mt-1 ml-1">
-          {message.time}
-        </Text>
+        <Text className="text-gray-500 text-xs mt-1 ml-1">{message.time}</Text>
       </Animated.View>
     );
   };
-  
+
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className="flex-1 bg-dark-900" style={{ paddingBottom: 80 }}>
       {/* Header */}
-      <View 
-        style={{ paddingTop: insets.top }}
-        className="px-6 pt-6 pb-4"
-      >
+      <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center">
           <Text className="text-white text-2xl font-bold">Cyborg AI</Text>
           <TouchableOpacity className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center">
@@ -147,11 +220,11 @@ export default function CyborgScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       {/* Cyborg Brain Visualization */}
       <View className="w-full items-center justify-center py-4">
         <View className="relative w-20 h-20 items-center justify-center">
-          <Animated.View 
+          <Animated.View
             style={pulseStyle}
             className="absolute w-20 h-20 rounded-full bg-primary opacity-30"
           />
@@ -160,7 +233,7 @@ export default function CyborgScreen() {
           </View>
         </View>
       </View>
-      
+
       {/* Chat Messages */}
       <ScrollView
         ref={scrollViewRef}
@@ -171,53 +244,36 @@ export default function CyborgScreen() {
         {messages.map((message, index) => (
           <MessageBubble key={index} message={message} index={index} />
         ))}
-        
+
         {isProcessing && (
           <View className="self-start bg-dark-800 rounded-2xl rounded-tl-none p-4 mb-4">
             <View className="flex-row items-center">
               <View className="w-2 h-2 bg-primary rounded-full mx-1 animate-pulse" />
-              <View className="w-2 h-2 bg-primary rounded-full mx-1 animate-pulse" style={{ animationDelay: '0.2s' }} />
-              <View className="w-2 h-2 bg-primary rounded-full mx-1 animate-pulse" style={{ animationDelay: '0.4s' }} />
+              <View
+                className="w-2 h-2 bg-primary rounded-full mx-1 animate-pulse"
+                style={{ animationDelay: "0.2s" }}
+              />
+              <View
+                className="w-2 h-2 bg-primary rounded-full mx-1 animate-pulse"
+                style={{ animationDelay: "0.4s" }}
+              />
             </View>
           </View>
         )}
       </ScrollView>
-      
-      {/* Quick Questions */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        className="pb-4"
-      >
-        {[
-          "Today's workout plan?",
-          "Nutrition advice",
-          "Track my progress",
-          "Optimize recovery",
-          "Sleep analysis"
-        ].map((q, index) => (
-          <TouchableOpacity
-            key={index}
-            className="bg-dark-800 rounded-full px-4 py-2 mr-2"
-            onPress={() => {
-              setQuestion(q);
-            }}
-          >
-            <Text className="text-white">{q}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-      
+
       {/* Input Box */}
-      <View 
+      <View
         className="flex-row items-center px-4 py-2 bg-dark-800 border-t border-dark-700"
         style={{ paddingBottom: insets.bottom > 0 ? insets.bottom : 16 }}
       >
-        <TouchableOpacity className="w-10 h-10 items-center justify-center">
-          <Ionicons name="mic-outline" size={24} color="#A0A0A0" />
+        <TouchableOpacity
+          className="w-10 h-10 items-center justify-center"
+          onPress={handleVideoUpload}
+        >
+          <Ionicons name="videocam-outline" size={24} color="#A0A0A0" />
         </TouchableOpacity>
-        
+
         <TextInput
           className="flex-1 bg-dark-700 rounded-full px-4 py-2 mx-2 text-white"
           placeholder="Ask your Cyborg AI trainer..."
@@ -228,16 +284,18 @@ export default function CyborgScreen() {
           returnKeyType="send"
           onSubmitEditing={handleSendMessage}
         />
-        
-        <TouchableOpacity 
-          className={`w-10 h-10 rounded-full items-center justify-center ${question.trim() ? 'bg-primary' : 'bg-dark-700'}`}
+
+        <TouchableOpacity
+          className={`w-10 h-10 rounded-full items-center justify-center ${
+            question.trim() ? "bg-primary" : "bg-dark-700"
+          }`}
           onPress={handleSendMessage}
           disabled={!question.trim()}
         >
-          <Ionicons 
-            name="arrow-up" 
-            size={20} 
-            color={question.trim() ? '#121212' : '#A0A0A0'} 
+          <Ionicons
+            name="arrow-up"
+            size={20}
+            color={question.trim() ? "#121212" : "#A0A0A0"}
           />
         </TouchableOpacity>
       </View>
