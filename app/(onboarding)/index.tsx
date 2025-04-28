@@ -16,6 +16,8 @@ import {
   TextInput,
   Pressable,
   GestureResponderEvent,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,6 +48,8 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
+import { userDataService } from "../../api";
+import { UserData } from "../../types/user/userData";
 
 const { width, height } = Dimensions.get("window");
 
@@ -294,7 +298,7 @@ const GenderSelectionScreen = ({ onNext, onBack }: any) => {
         className={`bg-primary rounded-full py-4 items-center mt-12 w-full max-w-md ${
           !selectedGender ? "opacity-50" : "opacity-100"
         }`}
-        onPress={onNext}
+        onPress={() => onNext(selectedGender)}
         disabled={!selectedGender}
       >
         <Text className="text-dark-900 font-bold text-lg">Continue</Text>
@@ -335,7 +339,7 @@ const AgeSelectionScreen = ({ onNext, onBack }: any) => {
 
       <TouchableOpacity
         className="bg-primary rounded-full py-4 items-center mt-12 w-full max-w-md"
-        onPress={onNext}
+        onPress={() => onNext(selectedAge)}
         activeOpacity={0.8}
         style={{
           shadowColor: "#BBFD00",
@@ -411,7 +415,7 @@ const WeightSelectionScreen = ({ onNext, onBack }: any) => {
 
       <TouchableOpacity
         className="bg-primary rounded-full py-4 items-center mt-12 w-full max-w-md"
-        onPress={onNext}
+        onPress={() => onNext(selectedWeight)}
         activeOpacity={0.8}
         style={{
           shadowColor: "#BBFD00",
@@ -543,7 +547,7 @@ const HeightSelectionScreen = ({ onNext, onBack }: any) => {
 
       <TouchableOpacity
         className="bg-primary rounded-full py-4 items-center mt-12 w-full max-w-md"
-        onPress={onNext}
+        onPress={() => onNext(selectedHeight)}
         activeOpacity={0.8}
         style={{
           shadowColor: "#BBFD00",
@@ -574,6 +578,24 @@ const GoalSelectionScreen = ({ onNext, onBack }: any) => {
       ...prev,
       [goal]: !prev[goal],
     }));
+  };
+
+  // Function to get selected goals as a string
+  const getSelectedGoalsString = () => {
+    const selectedGoals = Object.keys(goals).filter(
+      (goal) => goals[goal as keyof typeof goals]
+    );
+
+    // Map keys to more readable text
+    const goalLabels: { [key: string]: string } = {
+      muscleMass: "Gaining muscle mass",
+      weightLoss: "Weight loss",
+      immunityEnhancement: "Immunity enhancement",
+      muscleTone: "Muscle tone",
+      other: "Other fitness goals",
+    };
+
+    return selectedGoals.map((goal) => goalLabels[goal]).join(", ");
   };
 
   return (
@@ -624,7 +646,7 @@ const GoalSelectionScreen = ({ onNext, onBack }: any) => {
 
       <TouchableOpacity
         className="bg-primary rounded-full py-4 items-center mt-12 w-full max-w-md"
-        onPress={onNext}
+        onPress={() => onNext(getSelectedGoalsString())}
       >
         <Text className="text-dark-900 font-bold text-lg">Continue</Text>
       </TouchableOpacity>
@@ -851,7 +873,13 @@ const BodyCompositionScreen = ({ onNext, onBack }: any) => {
 
           <TouchableOpacity
             className="bg-primary rounded-full py-4 items-center mt-4 w-full"
-            onPress={onNext}
+            onPress={() =>
+              onNext({
+                muscleMass: musclePercentage,
+                fatPercentage,
+                waterPercentage,
+              })
+            }
             activeOpacity={0.8}
             style={{
               shadowColor: "#BBFD00",
@@ -870,10 +898,11 @@ const BodyCompositionScreen = ({ onNext, onBack }: any) => {
   );
 };
 
-// Workout Location screen
+// Workout Location screen with only backend-supported options
 const WorkoutLocationScreen = ({ onNext, onBack }: any) => {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
+  // Keep only the locations supported by the backend
   const locations = [
     {
       id: "home",
@@ -886,18 +915,6 @@ const WorkoutLocationScreen = ({ onNext, onBack }: any) => {
       title: "Gym",
       description: "Access to full gym equipment",
       icon: "barbell-outline",
-    },
-    {
-      id: "outdoors",
-      title: "Outdoors",
-      description: "Parks, tracks, or other outdoor spaces",
-      icon: "leaf-outline",
-    },
-    {
-      id: "mixed",
-      title: "Mixed",
-      description: "Combination of home, gym, and outdoors",
-      icon: "sync-outline",
     },
   ];
 
@@ -960,7 +977,7 @@ const WorkoutLocationScreen = ({ onNext, onBack }: any) => {
         className={`bg-primary rounded-full py-4 items-center mt-6 w-full max-w-md ${
           !selectedLocation ? "opacity-50" : "opacity-100"
         }`}
-        onPress={onNext}
+        onPress={() => onNext(selectedLocation)}
         disabled={!selectedLocation}
         activeOpacity={0.8}
         style={{
@@ -1064,7 +1081,7 @@ const EquipmentScreen = ({ onNext, onBack }: any) => {
 
       <TouchableOpacity
         className="bg-primary rounded-full py-4 items-center mt-6 w-full max-w-md"
-        onPress={onNext}
+        onPress={() => onNext(selectedEquipment)}
         activeOpacity={0.8}
         style={{
           shadowColor: "#BBFD00",
@@ -1178,7 +1195,7 @@ const ActivityLevelScreen = ({ onNext, onBack }: any) => {
         className={`bg-primary rounded-full py-4 items-center mt-6 w-full max-w-md ${
           !selectedLevel ? "opacity-50" : "opacity-100"
         }`}
-        onPress={onNext}
+        onPress={() => onNext(selectedLevel)}
         disabled={!selectedLevel}
         activeOpacity={0.8}
         style={{
@@ -1195,37 +1212,18 @@ const ActivityLevelScreen = ({ onNext, onBack }: any) => {
   );
 };
 
-// Nationality Screen
+// Nationality Screen with proper country picker
 const NationalityScreen = ({ onNext, onBack }: any) => {
-  const [nationality, setNationality] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [country, setCountry] = useState<any>(null);
+  const [countryPickerVisible, setCountryPickerVisible] = useState(false);
 
-  const countries = [
-    "United States",
-    "Canada",
-    "United Kingdom",
-    "Australia",
-    "Germany",
-    "France",
-    "Spain",
-    "Italy",
-    "Brazil",
-    "Mexico",
-    "Japan",
-    "China",
-    "India",
-    "Russia",
-    "South Africa",
-    "Egypt",
-    "Nigeria",
-    "Saudi Arabia",
-    "UAE",
-    "Singapore",
-  ];
+  // Import country picker component
+  const CountryPicker = require("react-native-country-picker-modal").default;
 
-  const filteredCountries = countries.filter((country) =>
-    country.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const onSelectCountry = (selectedCountry: any) => {
+    setCountry(selectedCountry);
+    setCountryPickerVisible(false);
+  };
 
   return (
     <Animated.View
@@ -1238,68 +1236,60 @@ const NationalityScreen = ({ onNext, onBack }: any) => {
         </TouchableOpacity>
 
         <Text className="text-2xl font-bold text-white mb-2">Nationality</Text>
-        <Text className="text-gray-400 mb-6">
+        <Text className="text-gray-400 mb-8">
           This helps us customize your experience
         </Text>
 
-        <View className="bg-dark-800 rounded-xl flex-row items-center px-4 py-3 mb-4">
-          <Ionicons
-            name="search"
-            size={20}
-            color="#777"
-            style={{ marginRight: 8 }}
-          />
-          <TextInput
-            className="flex-1 text-white"
-            placeholder="Search countries..."
-            placeholderTextColor="#777"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#777" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <ScrollView
-          style={{ maxHeight: 350 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        <TouchableOpacity
+          onPress={() => setCountryPickerVisible(true)}
+          className="bg-dark-800 rounded-xl py-4 px-4 flex-row items-center justify-between"
+          style={{ borderWidth: 1, borderColor: country ? "#BBFD00" : "#333" }}
         >
-          {filteredCountries.map((country) => (
-            <TouchableOpacity
-              key={country}
-              className={`flex-row items-center py-3 px-4 rounded-xl mb-2 ${
-                nationality === country ? "bg-dark-700" : ""
-              }`}
-              onPress={() => setNationality(country)}
-            >
-              <Text
-                className={`flex-1 text-lg ${
-                  nationality === country
-                    ? "text-primary font-semibold"
-                    : "text-white"
-                }`}
-              >
-                {country}
-              </Text>
-              {nationality === country && (
-                <Ionicons name="checkmark-circle" size={22} color="#BBFD00" />
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          <View className="flex-row items-center">
+            {country ? (
+              <>
+                <CountryPicker
+                  countryCode={country.cca2}
+                  withFlag
+                  withCountryNameButton={false}
+                  onSelect={onSelectCountry}
+                  visible={false}
+                />
+                <Text className="text-white text-lg ml-3">{country.name}</Text>
+              </>
+            ) : (
+              <Text className="text-gray-400">Select your country</Text>
+            )}
+          </View>
+          <Ionicons name="chevron-down" size={20} color="#777" />
+        </TouchableOpacity>
+
+        <CountryPicker
+          onSelect={onSelectCountry}
+          visible={countryPickerVisible}
+          onClose={() => setCountryPickerVisible(false)}
+          withFilter
+          withFlag
+          withAlphaFilter
+          withCallingCode={false}
+          withEmoji
+          containerButtonStyle={{ display: "none" }}
+          theme={{
+            backgroundColor: "#121212",
+            onBackgroundTextColor: "#ffffff",
+            fontSize: 16,
+            primaryColor: "#BBFD00",
+            primaryColorVariant: "#333",
+          }}
+        />
       </View>
 
       <TouchableOpacity
-        className={`bg-primary rounded-full py-4 items-center mt-6 w-full max-w-md ${
-          !nationality ? "opacity-50" : "opacity-100"
+        className={`bg-primary rounded-full py-4 items-center mt-12 w-full max-w-md ${
+          !country ? "opacity-50" : "opacity-100"
         }`}
-        onPress={onNext}
-        disabled={!nationality}
+        onPress={() => country && onNext(country.name)}
+        disabled={!country}
         activeOpacity={0.8}
         style={{
           shadowColor: "#BBFD00",
@@ -1316,7 +1306,7 @@ const NationalityScreen = ({ onNext, onBack }: any) => {
 };
 
 // Additional Notes Screen
-const AdditionalNotesScreen = ({ onNext, onBack }: any) => {
+const AdditionalNotesScreen = ({ onNext, onBack, loading }: any) => {
   const [notes, setNotes] = useState("");
 
   return (
@@ -1365,7 +1355,7 @@ const AdditionalNotesScreen = ({ onNext, onBack }: any) => {
 
       <TouchableOpacity
         className="bg-primary rounded-full py-4 items-center mt-6 w-full max-w-md"
-        onPress={onNext}
+        onPress={() => onNext(notes)}
         activeOpacity={0.8}
         style={{
           shadowColor: "#BBFD00",
@@ -1374,10 +1364,15 @@ const AdditionalNotesScreen = ({ onNext, onBack }: any) => {
           shadowRadius: 4,
           elevation: 5,
         }}
+        disabled={loading}
       >
-        <Text className="text-dark-900 font-bold text-lg">
-          Complete Profile
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#121212" />
+        ) : (
+          <Text className="text-dark-900 font-bold text-lg">
+            Complete Profile
+          </Text>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -1499,16 +1494,59 @@ const styles = StyleSheet.create({
 export default function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(false);
 
   // Define total steps for progress calculation
   const totalSteps = 11;
+
+  // Add state to collect user data across screens
+  const [userData, setUserData] = useState<UserData>({});
+
+  // Update userData when a step is completed
+  const updateUserData = (data: Partial<UserData>) => {
+    setUserData((prev) => ({ ...prev, ...data }));
+  };
+
+  // Handle completing the onboarding process
+  const handleComplete = async () => {
+    try {
+      setLoading(true);
+
+      // Save all collected user data to the backend
+      await userDataService.saveUserData(userData);
+
+      // Navigate to main app
+      router.replace("/(main)/dashboard");
+    } catch (error) {
+      console.error("Error saving user data:", error);
+      Alert.alert(
+        "Error",
+        "There was a problem saving your profile data. You can update it later in your profile settings.",
+        [{ text: "OK", onPress: () => router.replace("/(main)/dashboard") }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Skip onboarding (optional for users)
+  const handleSkip = () => {
+    Alert.alert(
+      "Skip Profile Setup",
+      "You can complete your profile later in the app settings. Some features might be limited without a complete profile.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Skip", onPress: () => router.replace("/(main)/dashboard") },
+      ]
+    );
+  };
 
   const handleNext = () => {
     if (step < totalSteps - 1) {
       setStep(step + 1);
     } else {
-      // Navigate to main app
-      router.replace("/(main)/dashboard");
+      // Complete onboarding
+      handleComplete();
     }
   };
 
@@ -1524,40 +1562,122 @@ export default function OnboardingScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
       {/* Progress indicator at the top */}
-      <ProgressIndicator currentStep={step} totalSteps={totalSteps} />
+      <View className="flex-row items-center justify-between w-full mb-4">
+        <ProgressIndicator currentStep={step} totalSteps={totalSteps} />
+
+        {/* Skip button */}
+        <TouchableOpacity
+          onPress={handleSkip}
+          className="px-4 py-2"
+          disabled={loading}
+        >
+          <Text className="text-gray-400">Skip</Text>
+        </TouchableOpacity>
+      </View>
 
       {step === 0 && (
-        <GenderSelectionScreen onNext={handleNext} onBack={handleBack} />
+        <GenderSelectionScreen
+          onNext={(gender: "male" | "female") => {
+            updateUserData({ gender });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 1 && (
-        <AgeSelectionScreen onNext={handleNext} onBack={handleBack} />
+        <AgeSelectionScreen
+          onNext={(age: number) => {
+            updateUserData({ age });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 2 && (
-        <WeightSelectionScreen onNext={handleNext} onBack={handleBack} />
+        <WeightSelectionScreen
+          onNext={(weight: number) => {
+            updateUserData({ weight });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 3 && (
-        <HeightSelectionScreen onNext={handleNext} onBack={handleBack} />
+        <HeightSelectionScreen
+          onNext={(height: number) => {
+            updateUserData({ height });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 4 && (
-        <GoalSelectionScreen onNext={handleNext} onBack={handleBack} />
+        <GoalSelectionScreen
+          onNext={(goals: string) => {
+            updateUserData({ fitnessGoals: goals });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 5 && (
-        <BodyCompositionScreen onNext={handleNext} onBack={handleBack} />
+        <BodyCompositionScreen
+          onNext={(composition: {
+            muscleMass: number;
+            fatPercentage: number;
+            waterPercentage: number;
+          }) => {
+            updateUserData(composition);
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 6 && (
-        <ActivityLevelScreen onNext={handleNext} onBack={handleBack} />
+        <ActivityLevelScreen
+          onNext={(level: string) => {
+            updateUserData({ activityLevel: level });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 7 && (
-        <WorkoutLocationScreen onNext={handleNext} onBack={handleBack} />
+        <WorkoutLocationScreen
+          onNext={(location: string) => {
+            updateUserData({ workoutLocation: location });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 8 && (
-        <EquipmentScreen onNext={handleNext} onBack={handleBack} />
+        <EquipmentScreen
+          onNext={(equipment: string[]) => {
+            updateUserData({ availableEquipment: equipment });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 9 && (
-        <NationalityScreen onNext={handleNext} onBack={handleBack} />
+        <NationalityScreen
+          onNext={(nationality: string) => {
+            updateUserData({ nationality });
+            handleNext();
+          }}
+          onBack={handleBack}
+        />
       )}
       {step === 10 && (
-        <AdditionalNotesScreen onNext={handleNext} onBack={handleBack} />
+        <AdditionalNotesScreen
+          onNext={(notes: string) => {
+            updateUserData({ additionalNotes: notes });
+            handleComplete();
+          }}
+          onBack={handleBack}
+          loading={loading}
+        />
       )}
     </View>
   );

@@ -9,6 +9,8 @@ import {
   ScrollView,
   StyleSheet,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,15 +18,15 @@ import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
-  SlideInDown,
   SlideInUp,
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { authService } from "../../api";
+import { LoginDTO, RegisterDTO } from "../../types/auth/auth";
 
 const { width } = Dimensions.get("window");
 const buttonSpacing = width < 350 ? 15 : 25; // Adjust spacing based on screen width
@@ -36,12 +38,15 @@ export default function AuthScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
 
   // Animation values
   const switchAnim = useSharedValue(isLogin ? 0 : 1);
 
   const toggleAuthMode = (mode: boolean) => {
+    setError(null); // Clear any existing errors
     switchAnim.value = withTiming(mode ? 0 : 1, { duration: 300 });
     setIsLogin(mode);
     // Reset form fields when switching modes
@@ -51,10 +56,109 @@ export default function AuthScreen() {
     }
   };
 
-  const handleAuth = () => {
-    // In a real app, we would validate and authenticate or register
-    // For now, we'll just navigate to the onboarding
-    router.push("/(onboarding)");
+  const validateForm = (): boolean => {
+    setError(null);
+
+    // Common validation for both login and registration
+    if (!email.trim()) {
+      setError("Email is required");
+      return false;
+    }
+
+    if (!password) {
+      setError("Password is required");
+      return false;
+    }
+
+    // Additional validation for registration
+    if (!isLogin) {
+      if (!firstName.trim()) {
+        setError("First name is required");
+        return false;
+      }
+
+      if (!lastName.trim()) {
+        setError("Last name is required");
+        return false;
+      }
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email");
+      return false;
+    }
+
+    // Basic password validation
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleAuth = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (isLogin) {
+        // Handle login
+        const loginData: LoginDTO = {
+          email,
+          password,
+        };
+
+        await authService.login(loginData);
+
+        // Navigate to main app or onboarding based on first login
+        router.push("/(main)/dashboard");
+      } else {
+        // Handle registration
+        const registerData: RegisterDTO = {
+          firstName,
+          lastName,
+          email,
+          password,
+        };
+
+        const response = await authService.register(registerData);
+
+        // If it's the user's first login, navigate to onboarding
+        if (response.user.isFirstLogin) {
+          router.push("/(onboarding)");
+        } else {
+          router.push("/(main)/dashboard");
+        }
+      }
+    } catch (err: any) {
+      console.error("Auth error:", err);
+      // Handle different types of errors
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError(isLogin ? "Login failed" : "Registration failed");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle social sign-in
+  const handleSocialAuth = (provider: string) => {
+    // For future implementation of social authentication
+    Alert.alert(
+      "Coming Soon",
+      `${provider} authentication will be available soon.`
+    );
   };
 
   const leftTabStyle = useAnimatedStyle(() => {
@@ -149,6 +253,16 @@ export default function AuthScreen() {
             entering={SlideInUp.delay(300).duration(800)}
             className="w-full max-w-xs"
           >
+            {/* Error message display */}
+            {error && (
+              <Animated.View
+                entering={FadeIn.duration(300)}
+                className="mb-4 bg-red-900/50 p-3 rounded-lg"
+              >
+                <Text className="text-red-200 text-center">{error}</Text>
+              </Animated.View>
+            )}
+
             {/* First & Last Name Inputs (only visible in Sign Up mode) */}
             {!isLogin && (
               <Animated.View entering={FadeInDown.duration(400).springify()}>
@@ -262,10 +376,15 @@ export default function AuthScreen() {
                 className="bg-primary rounded-full py-4 items-center mb-4"
                 onPress={handleAuth}
                 style={styles.primaryButton}
+                disabled={isLoading}
               >
-                <Text className="text-dark-900 font-bold text-base">
-                  {isLogin ? "Log in" : "Create account"}
-                </Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#121212" size="small" />
+                ) : (
+                  <Text className="text-dark-900 font-bold text-base">
+                    {isLogin ? "Log in" : "Create account"}
+                  </Text>
+                )}
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>
@@ -287,6 +406,7 @@ export default function AuthScreen() {
               <Animated.View entering={FadeInUp.delay(900)}>
                 <TouchableOpacity
                   style={[styles.socialButton, styles.googleButton]}
+                  onPress={() => handleSocialAuth("Google")}
                 >
                   <Ionicons name="logo-google" size={26} color="#FFFFFF" />
                 </TouchableOpacity>
@@ -295,6 +415,7 @@ export default function AuthScreen() {
               <Animated.View entering={FadeInUp.delay(1000)}>
                 <TouchableOpacity
                   style={[styles.socialButton, styles.facebookButton]}
+                  onPress={() => handleSocialAuth("Facebook")}
                 >
                   <Ionicons name="logo-facebook" size={26} color="#FFFFFF" />
                 </TouchableOpacity>
@@ -303,6 +424,7 @@ export default function AuthScreen() {
               <Animated.View entering={FadeInUp.delay(1100)}>
                 <TouchableOpacity
                   style={[styles.socialButton, styles.appleButton]}
+                  onPress={() => handleSocialAuth("Apple")}
                 >
                   <Ionicons name="logo-apple" size={26} color="#FFFFFF" />
                 </TouchableOpacity>
