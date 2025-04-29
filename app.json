@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "cyborg-prototype",
+    "slug": "cyborg-prototype",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ahmadmosha.cyborgprototype",
+      "infoPlist": {
+        "NSCameraUsageDescription": "We need access to your camera to scan barcodes and take food photos for analysis.",
+        "NSPhotoLibraryUsageDescription": "We need access to your photo library to select food images for analysis."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.ahmadmosha.cyborgprototype"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-barcode-scanner"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
