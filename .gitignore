@@ -2,7 +2,15 @@
 
 # dependencies
 node_modules/
+
+# Environment variables and secrets
 .env
+.env.*
+!.env.template
+.env.local
+.env.development
+.env.test
+.env.production
 
 # Expo
 .expo/
