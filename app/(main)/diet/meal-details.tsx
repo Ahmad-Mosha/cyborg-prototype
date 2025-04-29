@@ -7,8 +7,15 @@ import { router, useLocalSearchParams } from "expo-router";
 
 export default function MealDetailsScreen() {
   const insets = useSafeAreaInsets();
-  const { mealId, mealTitle, mealTime, mealCalories, mealItems, mealColor } =
-    useLocalSearchParams();
+  const params = useLocalSearchParams();
+
+  // Extract and convert params to the appropriate types
+  const mealId = params.mealId as string;
+  const mealTitle = params.mealTitle as string;
+  const mealTime = params.mealTime as string;
+  const mealCalories = params.mealCalories as string;
+  const mealItems = params.mealItems as string;
+  const mealColor = params.mealColor as string; // Ensure it's a string
 
   // Mock food items data for this meal
   const foodItems = [
@@ -48,7 +55,7 @@ export default function MealDetailsScreen() {
   return (
     <View className="flex-1 bg-dark-900">
       {/* Header */}
-      <View style={{ paddingTop: insets.top }} className="px-6 pt-6 pb-4">
+      <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -81,7 +88,7 @@ export default function MealDetailsScreen() {
             <View className="flex-row items-center mb-4">
               <View
                 className="w-12 h-12 rounded-full items-center justify-center mr-4"
-                style={{ backgroundColor: mealColor + "20" }}
+                style={{ backgroundColor: `${mealColor}20` }}
               >
                 <Ionicons
                   name="nutrition-outline"

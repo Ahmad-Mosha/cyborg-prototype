@@ -1,7 +1,7 @@
 import api from "./apiConfig";
-import { AuthResponse, LoginDTO, RegisterDTO } from "../types/auth/auth";
+import { AuthResponse, LoginDTO, RegisterDTO } from "../types/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User } from "../types/auth/user";
+import { User } from "../types/user";
 import { API_ENDPOINTS } from "../utils/config/env";
 
 export const authService = {

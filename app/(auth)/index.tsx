@@ -29,7 +29,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { authService } from "../../api";
-import { LoginDTO, RegisterDTO } from "../../types/auth/auth";
+import { LoginDTO, RegisterDTO } from "../../types/auth";
 
 const { width } = Dimensions.get("window");
 const buttonSpacing = width < 350 ? 15 : 25; // Adjust spacing based on screen width

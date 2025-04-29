@@ -3,7 +3,7 @@ import {
   FoodAnalysisResult,
   BarcodeProductResult,
   AnalyzeUrlRequest,
-} from "../types/food/food";
+} from "../types/food";
 
 export const foodService = {
   /**

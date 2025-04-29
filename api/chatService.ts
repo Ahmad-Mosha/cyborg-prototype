@@ -6,7 +6,7 @@ import {
   CreateMessageDTO,
   CreateConversationResponse,
   SendMessageResponse,
-} from "../types/chat/chat";
+} from "../types/chat";
 
 export const chatService = {
   /**
@@ -42,12 +42,37 @@ export const chatService = {
   /**
    * Create a new conversation
    */
-  async createConversation(): Promise<CreateConversationResponse> {
+  async createConversation(): Promise<ChatConversation> {
     try {
       const response = await api.post<CreateConversationResponse>(
         "/ai-chat/conversations"
       );
-      return response.data;
+
+      // Convert the CreateConversationResponse to ChatConversation format
+      const conversation: ChatConversation = {
+        id: response.data.id,
+        title: response.data.title,
+        createdAt: response.data.createdAt,
+        updatedAt: response.data.updatedAt,
+        isActive: response.data.isActive,
+        messages: [],
+        // Only include minimal user data that we have
+        user: response.data.user
+          ? {
+              id: response.data.user.id,
+              // The following properties are required by User type but not available in the response
+              email: "",
+              firstName: "",
+              lastName: "",
+              roles: [],
+              profileImage: "",
+              createdAt: "",
+              updatedAt: "",
+            }
+          : undefined,
+      };
+
+      return conversation;
     } catch (error: any) {
       console.error("Create conversation error:", error);
       throw error;

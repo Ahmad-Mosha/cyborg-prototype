@@ -62,3 +62,12 @@ export interface BarcodeProductResult {
 export interface AnalyzeUrlRequest {
   url: string;
 }
+
+export interface Meal {
+  time: string;
+  title: string;
+  calories: number;
+  items: string;
+  complete: boolean;
+  color: string;
+}

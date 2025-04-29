@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-  useMemo,
-} from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,46 +6,17 @@ import {
   Dimensions,
   ScrollView,
   StyleSheet,
-  FlatList,
   TextInput,
-  Pressable,
-  GestureResponderEvent,
   ActivityIndicator,
   Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  SlideInRight,
-  SlideOutLeft,
-  FadeIn,
-  FadeInRight,
-  useAnimatedScrollHandler,
-  interpolate,
-  runOnJS,
-  FadeInDown,
-  withSequence,
-  useAnimatedGestureHandler,
-  Extrapolate,
-  withDelay,
-} from "react-native-reanimated";
+import Animated, { FadeInRight } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { ChevronLeft, ArrowRight, Check } from "lucide-react-native";
-import { WheelPicker } from "react-native-infinite-wheel-picker";
-import Slider from "@react-native-community/slider";
-import {
-  PanGestureHandler,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import * as Haptics from "expo-haptics";
 import { userDataService } from "../../api";
-import { UserData } from "../../types/user/userData";
-
-const { width, height } = Dimensions.get("window");
+import { UserData } from "../../types/userData";
 
 // Progress indicator component
 const ProgressIndicator = ({

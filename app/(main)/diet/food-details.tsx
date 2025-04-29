@@ -1,29 +1,66 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
   ScrollView,
-  Platform
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { 
-  FadeIn, 
+import Animated, {
+  FadeIn,
   FadeInDown,
-  SlideInUp
+  SlideInUp,
 } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
+
+// Define types for our food data structure
+type PortionType = {
+  name: string;
+  multiplier: number;
+};
+
+type NutritionFactsType = {
+  servingSize: string;
+  calories: number;
+  totalFat: number;
+  saturatedFat: number;
+  transFat: number;
+  cholesterol: number;
+  sodium: number;
+  totalCarbs: number;
+  dietaryFiber: number;
+  sugars: number;
+  protein: number;
+  vitaminA: number;
+  vitaminC: number;
+  calcium: number;
+  iron: number;
+};
+
+type FoodType = {
+  id: number;
+  name: string;
+  brand: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  serving: string;
+  nutritionFacts: NutritionFactsType;
+  portions: PortionType[];
+};
 
 export default function FoodDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { foodId, mealId, mealTitle } = useLocalSearchParams();
-  
+
   const [quantity, setQuantity] = useState(1);
   const [showPortionSelector, setShowPortionSelector] = useState(false);
 
   // Mock food database for the example
-  const foodDatabase = [
+  const foodDatabase: FoodType[] = [
     {
       id: 1,
       name: "Grilled Chicken Breast",
@@ -48,14 +85,14 @@ export default function FoodDetailsScreen() {
         vitaminA: 1,
         vitaminC: 0,
         calcium: 0,
-        iron: 6
+        iron: 6,
       },
       portions: [
         { name: "100g", multiplier: 1 },
         { name: "3oz (85g)", multiplier: 0.85 },
         { name: "1 breast (172g)", multiplier: 1.72 },
-        { name: "Custom", multiplier: 1 }
-      ]
+        { name: "Custom", multiplier: 1 },
+      ],
     },
     {
       id: 2,
@@ -81,14 +118,14 @@ export default function FoodDetailsScreen() {
         vitaminA: 0,
         vitaminC: 0,
         calcium: 20,
-        iron: 0
+        iron: 0,
       },
       portions: [
         { name: "1 container (170g)", multiplier: 1 },
         { name: "1 cup (245g)", multiplier: 1.44 },
         { name: "1 tbsp (15g)", multiplier: 0.088 },
-        { name: "Custom", multiplier: 1 }
-      ]
+        { name: "Custom", multiplier: 1 },
+      ],
     },
     {
       id: 3,
@@ -114,14 +151,14 @@ export default function FoodDetailsScreen() {
         vitaminA: 284,
         vitaminC: 2.4,
         calcium: 30,
-        iron: 0.6
+        iron: 0.6,
       },
       portions: [
         { name: "100g", multiplier: 1 },
         { name: "1 medium (114g)", multiplier: 1.14 },
         { name: "1 cup cubes (133g)", multiplier: 1.33 },
-        { name: "Custom", multiplier: 1 }
-      ]
+        { name: "Custom", multiplier: 1 },
+      ],
     },
     {
       id: 4,
@@ -147,14 +184,14 @@ export default function FoodDetailsScreen() {
         vitaminA: 0,
         vitaminC: 0,
         calcium: 10,
-        iron: 0.5
+        iron: 0.5,
       },
       portions: [
         { name: "100g cooked", multiplier: 1 },
         { name: "1 cup cooked (195g)", multiplier: 1.95 },
         { name: "1/2 cup cooked (97g)", multiplier: 0.97 },
-        { name: "Custom", multiplier: 1 }
-      ]
+        { name: "Custom", multiplier: 1 },
+      ],
     },
     {
       id: 5,
@@ -180,14 +217,14 @@ export default function FoodDetailsScreen() {
         vitaminA: 1,
         vitaminC: 3.9,
         calcium: 12,
-        iron: 0.8
+        iron: 0.8,
       },
       portions: [
         { name: "100g", multiplier: 1 },
         { name: "1 fillet (170g)", multiplier: 1.7 },
         { name: "3oz (85g)", multiplier: 0.85 },
-        { name: "Custom", multiplier: 1 }
-      ]
+        { name: "Custom", multiplier: 1 },
+      ],
     },
     {
       id: 6,
@@ -213,25 +250,30 @@ export default function FoodDetailsScreen() {
         vitaminA: 7,
         vitaminC: 10,
         calcium: 12,
-        iron: 0.6
+        iron: 0.6,
       },
       portions: [
         { name: "100g", multiplier: 1 },
         { name: "1/2 avocado (68g)", multiplier: 0.68 },
         { name: "1 whole (136g)", multiplier: 1.36 },
-        { name: "Custom", multiplier: 1 }
-      ]
-    }
+        { name: "Custom", multiplier: 1 },
+      ],
+    },
   ];
 
   // Get the selected food from the mock database
-  const food = foodDatabase.find(f => f.id.toString() === foodId) || foodDatabase[0];
+  const food =
+    foodDatabase.find((f) => f.id.toString() === foodId) || foodDatabase[0];
 
   // Calculate nutrition based on the selected quantity
-  const [selectedPortion, setSelectedPortion] = useState(food.portions[0]);
+  const [selectedPortion, setSelectedPortion] = useState<PortionType>(
+    food.portions[0]
+  );
 
-  const calculateNutrition = (baseAmount) => {
-    return Math.round(baseAmount * selectedPortion.multiplier * quantity * 10) / 10;
+  const calculateNutrition = (baseAmount: number): number => {
+    return (
+      Math.round(baseAmount * selectedPortion.multiplier * quantity * 10) / 10
+    );
   };
 
   const handleAddToMeal = () => {
@@ -240,7 +282,7 @@ export default function FoodDetailsScreen() {
     router.back();
   };
 
-  const selectPortion = (portion) => {
+  const selectPortion = (portion: PortionType): void => {
     setSelectedPortion(portion);
     setShowPortionSelector(false);
   };
@@ -248,10 +290,7 @@ export default function FoodDetailsScreen() {
   return (
     <View className="flex-1 bg-dark-900">
       {/* Header */}
-      <View 
-        style={{ paddingTop: insets.top }} 
-        className="px-6 pt-6 pb-4"
-      >
+      <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -271,23 +310,19 @@ export default function FoodDetailsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Food Info Card */}
-        <Animated.View 
-          entering={FadeIn.delay(100).duration(400)} 
+        <Animated.View
+          entering={FadeIn.delay(100).duration(400)}
           className="px-6 mb-6"
         >
           <View className="bg-dark-800 rounded-3xl border border-dark-700 p-5">
             <View className="flex-row items-center mb-4">
-              <View
-                className="w-16 h-16 bg-dark-700 rounded-2xl items-center justify-center mr-4"
-              >
-                <Ionicons
-                  name="nutrition-outline"
-                  size={32}
-                  color="#BBFD00"
-                />
+              <View className="w-16 h-16 bg-dark-700 rounded-2xl items-center justify-center mr-4">
+                <Ionicons name="nutrition-outline" size={32} color="#BBFD00" />
               </View>
               <View className="flex-1">
-                <Text className="text-white text-xl font-bold">{food.name}</Text>
+                <Text className="text-white text-xl font-bold">
+                  {food.name}
+                </Text>
                 <Text className="text-gray-400">{food.brand}</Text>
               </View>
             </View>
@@ -296,26 +331,34 @@ export default function FoodDetailsScreen() {
             <View className="flex-row justify-around bg-dark-700 rounded-2xl p-4 mb-4">
               <View className="items-center">
                 <Text className="text-gray-400 text-sm">Calories</Text>
-                <Text className="text-white text-lg font-bold">{calculateNutrition(food.calories)}</Text>
+                <Text className="text-white text-lg font-bold">
+                  {calculateNutrition(food.calories)}
+                </Text>
               </View>
               <View className="items-center">
                 <Text className="text-gray-400 text-sm">Protein</Text>
-                <Text className="text-primary text-lg font-bold">{calculateNutrition(food.protein)}g</Text>
+                <Text className="text-primary text-lg font-bold">
+                  {calculateNutrition(food.protein)}g
+                </Text>
               </View>
               <View className="items-center">
                 <Text className="text-gray-400 text-sm">Carbs</Text>
-                <Text className="text-[#FF9800] text-lg font-bold">{calculateNutrition(food.carbs)}g</Text>
+                <Text className="text-[#FF9800] text-lg font-bold">
+                  {calculateNutrition(food.carbs)}g
+                </Text>
               </View>
               <View className="items-center">
                 <Text className="text-gray-400 text-sm">Fats</Text>
-                <Text className="text-[#2196F3] text-lg font-bold">{calculateNutrition(food.fats)}g</Text>
+                <Text className="text-[#2196F3] text-lg font-bold">
+                  {calculateNutrition(food.fats)}g
+                </Text>
               </View>
             </View>
 
             {/* Quantity Selector */}
             <View className="flex-row justify-between items-center bg-dark-700 rounded-2xl p-4">
               <Text className="text-white text-base">Quantity</Text>
-              
+
               <View className="flex-row items-center">
                 <TouchableOpacity
                   onPress={() => quantity > 1 && setQuantity(quantity - 1)}
@@ -323,7 +366,9 @@ export default function FoodDetailsScreen() {
                 >
                   <Ionicons name="remove" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text className="text-white text-lg font-bold mx-4">{quantity}</Text>
+                <Text className="text-white text-lg font-bold mx-4">
+                  {quantity}
+                </Text>
                 <TouchableOpacity
                   onPress={() => setQuantity(quantity + 1)}
                   className="bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
@@ -348,77 +393,97 @@ export default function FoodDetailsScreen() {
         </Animated.View>
 
         {/* Nutrition Facts */}
-        <Animated.View 
-          entering={FadeInDown.delay(200).duration(400)} 
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(400)}
           className="px-6 mb-6"
         >
-          <Text className="text-white text-lg font-bold mb-4">Nutrition Facts</Text>
-          
+          <Text className="text-white text-lg font-bold mb-4">
+            Nutrition Facts
+          </Text>
+
           <View className="bg-dark-800 rounded-3xl border border-dark-700 p-5">
             <Text className="text-white text-base font-bold border-b border-dark-700 pb-2">
               Serving size {selectedPortion.name}
             </Text>
-            
+
             <View className="py-2 border-b border-dark-700">
               <Text className="text-white text-lg font-bold">
                 Calories {calculateNutrition(food.nutritionFacts.calories)}
               </Text>
             </View>
-            
+
             {/* Fat section */}
             <View className="py-2 border-b border-dark-700">
               <View className="flex-row justify-between">
                 <Text className="text-white font-bold">Total Fat</Text>
-                <Text className="text-white font-bold">{calculateNutrition(food.nutritionFacts.totalFat)}g</Text>
+                <Text className="text-white font-bold">
+                  {calculateNutrition(food.nutritionFacts.totalFat)}g
+                </Text>
               </View>
 
               <View className="flex-row justify-between pl-5 mt-1">
                 <Text className="text-gray-400">Saturated Fat</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.saturatedFat)}g</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.saturatedFat)}g
+                </Text>
               </View>
 
               <View className="flex-row justify-between pl-5 mt-1">
                 <Text className="text-gray-400">Trans Fat</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.transFat)}g</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.transFat)}g
+                </Text>
               </View>
             </View>
-            
+
             {/* Other nutrients */}
             <View className="py-2 border-b border-dark-700">
               <View className="flex-row justify-between">
                 <Text className="text-white font-bold">Cholesterol</Text>
-                <Text className="text-white">{calculateNutrition(food.nutritionFacts.cholesterol)}mg</Text>
+                <Text className="text-white">
+                  {calculateNutrition(food.nutritionFacts.cholesterol)}mg
+                </Text>
               </View>
             </View>
 
             <View className="py-2 border-b border-dark-700">
               <View className="flex-row justify-between">
                 <Text className="text-white font-bold">Sodium</Text>
-                <Text className="text-white">{calculateNutrition(food.nutritionFacts.sodium)}mg</Text>
+                <Text className="text-white">
+                  {calculateNutrition(food.nutritionFacts.sodium)}mg
+                </Text>
               </View>
             </View>
 
             <View className="py-2 border-b border-dark-700">
               <View className="flex-row justify-between">
                 <Text className="text-white font-bold">Total Carbohydrate</Text>
-                <Text className="text-white font-bold">{calculateNutrition(food.nutritionFacts.totalCarbs)}g</Text>
+                <Text className="text-white font-bold">
+                  {calculateNutrition(food.nutritionFacts.totalCarbs)}g
+                </Text>
               </View>
 
               <View className="flex-row justify-between pl-5 mt-1">
                 <Text className="text-gray-400">Dietary Fiber</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.dietaryFiber)}g</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.dietaryFiber)}g
+                </Text>
               </View>
 
               <View className="flex-row justify-between pl-5 mt-1">
                 <Text className="text-gray-400">Sugars</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.sugars)}g</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.sugars)}g
+                </Text>
               </View>
             </View>
 
             <View className="py-2 border-b border-dark-700">
               <View className="flex-row justify-between">
                 <Text className="text-white font-bold">Protein</Text>
-                <Text className="text-white font-bold">{calculateNutrition(food.nutritionFacts.protein)}g</Text>
+                <Text className="text-white font-bold">
+                  {calculateNutrition(food.nutritionFacts.protein)}g
+                </Text>
               </View>
             </View>
 
@@ -426,19 +491,27 @@ export default function FoodDetailsScreen() {
             <View className="pt-2">
               <View className="flex-row justify-between mt-1">
                 <Text className="text-gray-400">Vitamin A</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.vitaminA)}%</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.vitaminA)}%
+                </Text>
               </View>
               <View className="flex-row justify-between mt-1">
                 <Text className="text-gray-400">Vitamin C</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.vitaminC)}%</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.vitaminC)}%
+                </Text>
               </View>
               <View className="flex-row justify-between mt-1">
                 <Text className="text-gray-400">Calcium</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.calcium)}%</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.calcium)}%
+                </Text>
               </View>
               <View className="flex-row justify-between mt-1">
                 <Text className="text-gray-400">Iron</Text>
-                <Text className="text-gray-400">{calculateNutrition(food.nutritionFacts.iron)}%</Text>
+                <Text className="text-gray-400">
+                  {calculateNutrition(food.nutritionFacts.iron)}%
+                </Text>
               </View>
             </View>
           </View>
@@ -455,9 +528,7 @@ export default function FoodDetailsScreen() {
           className="bg-primary rounded-2xl py-4 flex-row justify-center items-center"
         >
           <Ionicons name="add-circle-outline" size={20} color="#000000" />
-          <Text className="text-black font-bold ml-2">
-            Add to {mealTitle}
-          </Text>
+          <Text className="text-black font-bold ml-2">Add to {mealTitle}</Text>
         </TouchableOpacity>
       </View>
 
@@ -481,7 +552,7 @@ export default function FoodDetailsScreen() {
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-              
+
               {food.portions.map((portion, index) => (
                 <TouchableOpacity
                   key={index}

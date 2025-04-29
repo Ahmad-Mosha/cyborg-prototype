@@ -4,10 +4,16 @@ import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import { useTabBar } from "@/contexts/TabBarContext";
 
 // Custom tab bar component with modern design
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { isVisible } = useTabBar();
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Animated.View

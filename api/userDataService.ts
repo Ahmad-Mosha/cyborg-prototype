@@ -1,5 +1,5 @@
 import api from "./apiConfig";
-import { UserData, UserDataResponse } from "../types/user/userData";
+import { UserData, UserDataResponse } from "../types/userData";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const userDataService = {
