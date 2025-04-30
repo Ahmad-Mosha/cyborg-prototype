@@ -15,6 +15,20 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     return null;
   }
 
+  // Define the routes that should explicitly appear in the tab bar
+  const allowedRoutes = ["dashboard", "workout", "cyborg", "diet", "community"];
+
+  // Filter the routes provided by the state to only include the allowed ones
+  const visibleRoutes = state.routes.filter((route: any) => {
+    const routeName = route.name.split("/")[0]; // Get the base route name (folder)
+    return allowedRoutes.includes(routeName);
+  });
+
+  // Adjust the focused index based on the filtered routes
+  const focusedIndex = visibleRoutes.findIndex(
+    (route: any) => route.key === state.routes[state.index]?.key // Added : any type annotation
+  );
+
   return (
     <Animated.View
       entering={FadeInUp.delay(300)}
@@ -25,7 +39,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
       ]}
     >
       <View className="flex-row items-center px-3 py-2 bg-dark-900 border-t border-dark-800 rounded-t-2xl">
-        {state.routes.map((route: any, index: number) => {
+        {/* Map over the filtered routes instead of state.routes */}
+        {visibleRoutes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
           // Extract clean tab name without 'index' for display
           const rawLabel = options.tabBarLabel || options.title || route.name;
@@ -34,7 +49,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             typeof rawLabel === "string"
               ? rawLabel.replace("/index", "")
               : rawLabel;
-          const isFocused = state.index === index;
+          // Check focus based on the adjusted focusedIndex
+          const isFocused = focusedIndex === index;
 
           // Function to determine which icon to display based on screen name
           const getIcon = (focused: boolean) => {
@@ -76,7 +92,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                   />
                 );
               default:
-                // Use a different fallback icon to make debugging easier
+                // This should ideally not be reached now for tab bar items
                 return (
                   <Ionicons
                     name="help-circle-outline"
@@ -95,17 +111,14 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             });
 
             if (!isFocused && !event.defaultPrevented) {
+              // Navigate using the original route name which might include sub-paths
               navigation.navigate(route.name);
             }
           };
 
-          // Extract the base route name for checking if this is the center tab
-          const routePath = route.name || "";
-          const routeName = routePath.split("/")[0];
-
           return (
             <TouchableOpacity
-              key={index}
+              key={route.key} // Use route.key for a more stable key
               onPress={onPress}
               className={`flex-1 items-center ${
                 isFocused ? "bg-dark-700 rounded-xl py-2 mx-1" : "py-1 mx-1"
