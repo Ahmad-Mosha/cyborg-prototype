@@ -14,43 +14,9 @@ import Animated, {
   SlideInUp,
 } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
+import { PortionType, FoodType, NutritionFactsType } from "@/types/diet";
 
 // Define types for our food data structure
-type PortionType = {
-  name: string;
-  multiplier: number;
-};
-
-type NutritionFactsType = {
-  servingSize: string;
-  calories: number;
-  totalFat: number;
-  saturatedFat: number;
-  transFat: number;
-  cholesterol: number;
-  sodium: number;
-  totalCarbs: number;
-  dietaryFiber: number;
-  sugars: number;
-  protein: number;
-  vitaminA: number;
-  vitaminC: number;
-  calcium: number;
-  iron: number;
-};
-
-type FoodType = {
-  id: number;
-  name: string;
-  brand: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  serving: string;
-  nutritionFacts: NutritionFactsType;
-  portions: PortionType[];
-};
 
 export default function FoodDetailsScreen() {
   const insets = useSafeAreaInsets();

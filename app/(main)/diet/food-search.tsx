@@ -5,22 +5,16 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-  FadeIn,
-  FadeInUp,
-  FadeInDown,
-  SlideInRight,
-  SlideOutRight,
-} from "react-native-reanimated";
+import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { Camera, CameraView, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import foodService from "@/api/foodService";
 import { useTabBar } from "@/contexts/TabBarContext";
+import { Nutrient } from "@/types/diet";
 
 export default function FoodSearchScreen() {
   const insets = useSafeAreaInsets();
@@ -199,19 +193,19 @@ export default function FoodSearchScreen() {
           brand: result.breadcrumbs?.[0] || "N/A", // Use first breadcrumb as brand
           calories:
             result.nutrition?.nutrients?.find(
-              (n) => n.name.toLowerCase() === "calories"
+              (n: Nutrient) => n.name.toLowerCase() === "calories"
             )?.amount || 0,
           protein:
             result.nutrition?.nutrients?.find(
-              (n) => n.name.toLowerCase() === "protein"
+              (n: Nutrient) => n.name.toLowerCase() === "protein"
             )?.amount || 0,
           carbs:
             result.nutrition?.nutrients?.find(
-              (n) => n.name.toLowerCase() === "carbohydrates"
+              (n: Nutrient) => n.name.toLowerCase() === "carbohydrates"
             )?.amount || 0,
           fats:
             result.nutrition?.nutrients?.find(
-              (n) => n.name.toLowerCase() === "fat"
+              (n: Nutrient) => n.name.toLowerCase() === "fat"
             )?.amount || 0,
           serving: `${result.servings?.size || 0}${
             result.servings?.unit || "g"

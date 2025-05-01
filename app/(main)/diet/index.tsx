@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { router } from "expo-router";
-import { Meal } from "@/types/food";
+import { Meal } from "@/types/diet";
 
 export default function DietScreen() {
   const insets = useSafeAreaInsets();
