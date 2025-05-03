@@ -10,12 +10,13 @@ export default function MealDetailsScreen() {
   const params = useLocalSearchParams();
 
   // Extract and convert params to the appropriate types
-  const mealId = params.mealId as string;
-  const mealTitle = params.mealTitle as string;
-  const mealTime = params.mealTime as string;
-  const mealCalories = params.mealCalories as string;
-  const mealItems = params.mealItems as string;
-  const mealColor = params.mealColor as string; // Ensure it's a string
+  // Add fallback values to prevent undefined errors
+  const mealId = (params.mealId as string) || "";
+  const mealTitle = (params.mealTitle as string) || "Meal";
+  const mealTime = (params.mealTime as string) || "";
+  const mealCalories = (params.mealCalories as string) || "0";
+  const mealItems = (params.mealItems as string) || "";
+  const mealColor = (params.mealColor as string) || "#FF4500"; // Default orange color
 
   // Mock food items data for this meal
   const foodItems = [

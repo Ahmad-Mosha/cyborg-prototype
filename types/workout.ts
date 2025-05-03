@@ -24,13 +24,6 @@ export interface WorkoutPlan {
   category: string;
 }
 
-export interface Exercise {
-  name: string;
-  sets: number;
-  reps: string;
-  rest: number;
-}
-
 // Component props interfaces
 export interface WorkoutCardProps {
   workout: Workout;
@@ -38,11 +31,4 @@ export interface WorkoutCardProps {
 
 export interface PlanCardProps {
   plan: WorkoutPlan;
-}
-
-export interface ExerciseItemProps {
-  name: string;
-  sets: number;
-  reps: string;
-  rest: number;
 }

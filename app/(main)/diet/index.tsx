@@ -7,23 +7,29 @@ import { router } from "expo-router";
 import { Meal } from "@/types/diet";
 
 export default function DietScreen() {
+  // All hooks must be called in every render, and always in the same order
+  // Do not put hooks in conditional blocks
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("meals");
 
+  // Create a safe version of handleMealPress that handles null or undefined values
   const handleMealPress = (meal: Meal) => {
+    if (!meal) return; // Early guard clause before navigation
+
     router.push({
       pathname: "/diet/meal-details",
       params: {
-        mealId: meal.title.toLowerCase(),
-        mealTitle: meal.title,
-        mealTime: meal.time,
-        mealCalories: meal.calories,
-        mealItems: meal.items,
-        mealColor: meal.color,
+        mealId: meal.title?.toLowerCase() || "default-meal",
+        mealTitle: meal.title || "Meal",
+        mealTime: meal.time || "",
+        mealCalories: meal.calories || 0,
+        mealItems: meal.items || "",
+        mealColor: meal.color || "#FF4500",
       },
     });
   };
 
+  // Always return the component regardless of state
   return (
     <View className="flex-1 bg-dark-900">
       {/* Header */}

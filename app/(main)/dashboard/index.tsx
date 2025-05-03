@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,11 @@ import { QuickAccess } from "../../../components/dashboard/QuickAccess";
 import { WeightTracking } from "../../../components/dashboard/WeightTracking";
 import { BodyMeasurements } from "../../../components/dashboard/BodyMeasurements";
 import { DataPoint } from "../../../components/dashboard/SimpleLineChart";
+import SidebarMenu from "../../../components/ui/SidebarMenu";
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Sample data for widgets
   const workouts = [
@@ -65,6 +67,8 @@ export default function DashboardScreen() {
 
   return (
     <View className="flex-1 bg-dark-900">
+      <SidebarMenu isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 30,
@@ -81,8 +85,11 @@ export default function DashboardScreen() {
             <Text className="text-gray-400">Let's crush today's workout!</Text>
           </View>
 
-          <TouchableOpacity className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center">
-            <Ionicons name="notifications-outline" size={22} color="white" />
+          <TouchableOpacity
+            className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center"
+            onPress={() => setSidebarOpen(true)}
+          >
+            <Ionicons name="menu" size={22} color="white" />
           </TouchableOpacity>
         </View>
 
