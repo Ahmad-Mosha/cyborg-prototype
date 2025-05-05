@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,14 +15,23 @@ import Animated, {
   SlideInUp,
 } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
-import { PortionType, FoodType, NutritionFactsType } from "@/types/diet";
-
-// Define types for our food data structure
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  PortionType,
+  FoodType,
+  NutritionFactsType,
+  NutrientInfo,
+} from "@/types/diet";
+import BarcodeUtil from "@/utils/BarcodeUtil";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function FoodDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { foodId, mealId, mealTitle } = useLocalSearchParams();
+  const { isDark } = useTheme();
 
+  const [loading, setLoading] = useState(true);
+  const [productExists, setProductExists] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [showPortionSelector, setShowPortionSelector] = useState(false);
 
@@ -227,14 +237,157 @@ export default function FoodDetailsScreen() {
     },
   ];
 
-  // Get the selected food from the mock database
-  const food =
-    foodDatabase.find((f) => f.id.toString() === foodId) || foodDatabase[0];
+  // Check if this is a scanned barcode product
+  const isScannedProduct = typeof foodId === "string" && foodId.length > 8;
+
+  // Get the selected food from the mock database or AsyncStorage
+  const [food, setFood] = useState<any>(null);
+
+  // Load food data
+  useEffect(() => {
+    async function loadFoodData() {
+      try {
+        // For regular foods from the database
+        if (!isScannedProduct) {
+          const databaseFood =
+            foodDatabase.find((f) => f.id.toString() === foodId) ||
+            foodDatabase[0];
+          setFood(databaseFood);
+          setLoading(false);
+          return;
+        }
+
+        // For scanned barcode products
+        const storedData = await AsyncStorage.getItem("scannedBarcodeResult");
+
+        if (storedData) {
+          const scannedFood = JSON.parse(storedData);
+
+          // Check if barcode exists
+          const exists = await BarcodeUtil.productExists(foodId as string);
+          setProductExists(exists);
+
+          // Format the data to match our expected structure
+          const formattedFood = {
+            id: scannedFood.id,
+            name: scannedFood.name,
+            brand: scannedFood.brand,
+            calories: scannedFood.calories,
+            protein: scannedFood.protein,
+            carbs: scannedFood.carbs,
+            fats: scannedFood.fats,
+            serving: scannedFood.serving || "70g",
+            nutritionFacts: {
+              servingSize: scannedFood.serving || "70g",
+              calories: scannedFood.calories || 280,
+              totalFat: scannedFood.fats || 8.9,
+              saturatedFat: scannedFood.saturatedFat || 3.91,
+              transFat: scannedFood.transFat || 3.91,
+              cholesterol: scannedFood.cholesterol || 0,
+              sodium: scannedFood.salt ? scannedFood.salt * 1000 : 0,
+              totalCarbs: scannedFood.carbs || 38.13,
+              dietaryFiber: scannedFood.fiber || 0.805,
+              sugars: scannedFood.sugars || 0.805,
+              protein: scannedFood.protein || 16.31,
+              vitaminA: 0,
+              vitaminC: 0,
+              calcium: 0,
+              iron: 0,
+            },
+            portions: [
+              { name: scannedFood.serving || "70g", multiplier: 1 },
+              { name: "100g", multiplier: 100 / 70 },
+              { name: "Custom", multiplier: 1 },
+            ],
+            // Store the complete nutrition data for display
+            completeNutrition: scannedFood.completeNutrition,
+          };
+
+          setFood(formattedFood);
+        } else {
+          // If no stored data, get from barcode API directly
+          const barcodeResult = await BarcodeUtil.getProductByBarcode(
+            foodId as string
+          );
+          const exists =
+            barcodeResult.title !== `Egyptian Food Product (${foodId})`;
+          setProductExists(exists);
+
+          const getValueByName = (name: string): number => {
+            const nutrient = barcodeResult.nutrition?.nutrients?.find(
+              (n: NutrientInfo) => n.name === name
+            );
+            return nutrient ? nutrient.amount : 0;
+          };
+
+          // Convert to expected format
+          const formattedFood = {
+            id: barcodeResult.id,
+            name: barcodeResult.title,
+            brand: barcodeResult.breadcrumbs?.[0] || "N/A",
+            calories: getValueByName("Calories"),
+            protein: getValueByName("Protein"),
+            carbs: getValueByName("Carbohydrates"),
+            fats: getValueByName("Fat"),
+            serving: `${barcodeResult.servings?.size || 70}${
+              barcodeResult.servings?.unit || "g"
+            }`,
+            nutritionFacts: {
+              servingSize: `${barcodeResult.servings?.size || 70}${
+                barcodeResult.servings?.unit || "g"
+              }`,
+              calories: getValueByName("Calories"),
+              totalFat: getValueByName("Fat"),
+              saturatedFat: getValueByName("Saturated Fat"),
+              transFat: getValueByName("Trans Fat"),
+              cholesterol: getValueByName("Cholesterol"),
+              sodium: getValueByName("Salt") * 1000,
+              totalCarbs: getValueByName("Carbohydrates"),
+              dietaryFiber: getValueByName("Fiber"),
+              sugars: getValueByName("Sugars"),
+              protein: getValueByName("Protein"),
+              vitaminA: 0,
+              vitaminC: 0,
+              calcium: 0,
+              iron: 0,
+            },
+            portions: [
+              {
+                name: `${barcodeResult.servings?.size || 70}${
+                  barcodeResult.servings?.unit || "g"
+                }`,
+                multiplier: 1,
+              },
+              { name: "100g", multiplier: 100 / 70 },
+              { name: "Custom", multiplier: 1 },
+            ],
+            completeNutrition: barcodeResult.nutrition,
+          };
+
+          setFood(formattedFood);
+        }
+      } catch (error) {
+        console.error("Error loading food data:", error);
+        setProductExists(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadFoodData();
+  }, [foodId, isScannedProduct]);
 
   // Calculate nutrition based on the selected quantity
-  const [selectedPortion, setSelectedPortion] = useState<PortionType>(
-    food.portions[0]
-  );
+  const [selectedPortion, setSelectedPortion] = useState<PortionType>({
+    name: "70g",
+    multiplier: 1,
+  });
+
+  useEffect(() => {
+    if (food?.portions && food.portions.length > 0) {
+      setSelectedPortion(food.portions[0]);
+    }
+  }, [food]);
 
   const calculateNutrition = (baseAmount: number): number => {
     return (
@@ -252,6 +405,61 @@ export default function FoodDetailsScreen() {
     setSelectedPortion(portion);
     setShowPortionSelector(false);
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-dark-900 justify-center items-center">
+        <ActivityIndicator size="large" color="#BBFD00" />
+        <Text className="text-white mt-4">Loading food details...</Text>
+      </View>
+    );
+  }
+
+  if (!productExists) {
+    return (
+      <View className="flex-1 bg-dark-900">
+        <View
+          style={{ paddingTop: insets.top + 30 }}
+          className="px-6 pt-6 pb-4"
+        >
+          <View className="flex-row justify-between items-center">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+            >
+              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text className="text-white text-lg font-bold">
+              Product Not Found
+            </Text>
+            <View className="w-10" />
+          </View>
+        </View>
+
+        <View className="flex-1 justify-center items-center px-8">
+          <View className="bg-dark-800 rounded-3xl border border-dark-700 p-6 items-center w-full">
+            <View className="w-24 h-24 bg-dark-700 rounded-full items-center justify-center mb-6">
+              <Ionicons name="alert-circle-outline" size={64} color="#BBFD00" />
+            </View>
+            <Text className="text-white text-xl font-bold mb-2">
+              Product Not Found
+            </Text>
+            <Text className="text-gray-400 text-center mb-6">
+              This product isn't in our database yet. We've added it to our
+              queue for future updates.
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="bg-primary rounded-2xl py-4 px-8 flex-row justify-center items-center w-full"
+            >
+              <Ionicons name="arrow-back" size={20} color="#000000" />
+              <Text className="text-black font-bold ml-2">Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-dark-900">
@@ -453,33 +661,55 @@ export default function FoodDetailsScreen() {
               </View>
             </View>
 
-            {/* Vitamins and minerals */}
-            <View className="pt-2">
-              <View className="flex-row justify-between mt-1">
-                <Text className="text-gray-400">Vitamin A</Text>
-                <Text className="text-gray-400">
-                  {calculateNutrition(food.nutritionFacts.vitaminA)}%
+            {/* Display vitamins and minerals only if they're available */}
+            {(food.nutritionFacts.vitaminA > 0 ||
+              food.nutritionFacts.vitaminC > 0 ||
+              food.nutritionFacts.calcium > 0 ||
+              food.nutritionFacts.iron > 0) && (
+              <View className="pt-2">
+                {food.nutritionFacts.vitaminA > 0 && (
+                  <View className="flex-row justify-between mt-1">
+                    <Text className="text-gray-400">Vitamin A</Text>
+                    <Text className="text-gray-400">
+                      {calculateNutrition(food.nutritionFacts.vitaminA)}%
+                    </Text>
+                  </View>
+                )}
+                {food.nutritionFacts.vitaminC > 0 && (
+                  <View className="flex-row justify-between mt-1">
+                    <Text className="text-gray-400">Vitamin C</Text>
+                    <Text className="text-gray-400">
+                      {calculateNutrition(food.nutritionFacts.vitaminC)}%
+                    </Text>
+                  </View>
+                )}
+                {food.nutritionFacts.calcium > 0 && (
+                  <View className="flex-row justify-between mt-1">
+                    <Text className="text-gray-400">Calcium</Text>
+                    <Text className="text-gray-400">
+                      {calculateNutrition(food.nutritionFacts.calcium)}%
+                    </Text>
+                  </View>
+                )}
+                {food.nutritionFacts.iron > 0 && (
+                  <View className="flex-row justify-between mt-1">
+                    <Text className="text-gray-400">Iron</Text>
+                    <Text className="text-gray-400">
+                      {calculateNutrition(food.nutritionFacts.iron)}%
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Source info for scanned products */}
+            {isScannedProduct && (
+              <View className="mt-4 pt-2 border-t border-dark-700">
+                <Text className="text-gray-400 text-xs text-center">
+                  Nutrition data based on standard Egyptian food values
                 </Text>
               </View>
-              <View className="flex-row justify-between mt-1">
-                <Text className="text-gray-400">Vitamin C</Text>
-                <Text className="text-gray-400">
-                  {calculateNutrition(food.nutritionFacts.vitaminC)}%
-                </Text>
-              </View>
-              <View className="flex-row justify-between mt-1">
-                <Text className="text-gray-400">Calcium</Text>
-                <Text className="text-gray-400">
-                  {calculateNutrition(food.nutritionFacts.calcium)}%
-                </Text>
-              </View>
-              <View className="flex-row justify-between mt-1">
-                <Text className="text-gray-400">Iron</Text>
-                <Text className="text-gray-400">
-                  {calculateNutrition(food.nutritionFacts.iron)}%
-                </Text>
-              </View>
-            </View>
+            )}
           </View>
         </Animated.View>
       </ScrollView>

@@ -93,6 +93,7 @@ export interface BarcodeProductResult {
     unit: string;
   };
   spoonacularScore?: number;
+  image?: string; // Adding image property
 }
 
 export interface AnalyzeUrlRequest {
