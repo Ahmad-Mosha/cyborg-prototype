@@ -5,11 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { router } from "expo-router";
 import { Meal } from "@/types/diet";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function DietScreen() {
   // All hooks must be called in every render, and always in the same order
   // Do not put hooks in conditional blocks
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState("meals");
 
   // Create a safe version of handleMealPress that handles null or undefined values
@@ -31,11 +33,19 @@ export default function DietScreen() {
 
   // Always return the component regardless of state
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       {/* Header */}
       <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center">
-          <Text className="text-white text-2xl font-bold">Diet Plan</Text>
+          <Text
+            className={
+              isDark
+                ? "text-white text-2xl font-bold"
+                : "text-dark-900 text-2xl font-bold"
+            }
+          >
+            Diet Plan
+          </Text>
         </View>
       </View>
 
@@ -51,7 +61,11 @@ export default function DietScreen() {
           >
             <Text
               className={`text-base ${
-                activeTab === tab ? "text-primary font-bold" : "text-gray-400"
+                activeTab === tab
+                  ? "text-primary font-bold"
+                  : isDark
+                  ? "text-gray-400"
+                  : "text-gray-500"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -73,37 +87,125 @@ export default function DietScreen() {
               entering={FadeInUp.delay(100).duration(500)}
               className="px-6 mb-6"
             >
-              <View className="bg-dark-800 rounded-3xl border border-dark-700 p-5">
-                <Text className="text-gray-300 mb-3">
+              <View
+                className={
+                  isDark
+                    ? "bg-dark-800 rounded-3xl border border-dark-700 p-5"
+                    : "bg-white rounded-3xl border border-light-300 p-5 shadow"
+                }
+              >
+                <Text
+                  className={
+                    isDark ? "text-gray-300 mb-3" : "text-gray-600 mb-3"
+                  }
+                >
                   Daily Nutrition Goals
                 </Text>
                 <View className="flex-row justify-between mb-4">
                   <View className="items-center">
                     <View className="w-16 h-16 rounded-full border-4 border-primary items-center justify-center mb-2">
-                      <Text className="text-white text-lg font-bold">65%</Text>
+                      <Text
+                        className={
+                          isDark
+                            ? "text-white text-lg font-bold"
+                            : "text-dark-900 text-lg font-bold"
+                        }
+                      >
+                        65%
+                      </Text>
                     </View>
-                    <Text className="text-gray-400 text-sm">Proteins</Text>
-                    <Text className="text-white text-base font-bold">130g</Text>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-gray-400 text-sm"
+                          : "text-gray-500 text-sm"
+                      }
+                    >
+                      Proteins
+                    </Text>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-white text-base font-bold"
+                          : "text-dark-900 text-base font-bold"
+                      }
+                    >
+                      130g
+                    </Text>
                   </View>
 
                   <View className="items-center">
                     <View className="w-16 h-16 rounded-full border-4 border-[#FF9800] items-center justify-center mb-2">
-                      <Text className="text-white text-lg font-bold">25%</Text>
+                      <Text
+                        className={
+                          isDark
+                            ? "text-white text-lg font-bold"
+                            : "text-dark-900 text-lg font-bold"
+                        }
+                      >
+                        25%
+                      </Text>
                     </View>
-                    <Text className="text-gray-400 text-sm">Carbs</Text>
-                    <Text className="text-white text-base font-bold">200g</Text>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-gray-400 text-sm"
+                          : "text-gray-500 text-sm"
+                      }
+                    >
+                      Carbs
+                    </Text>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-white text-base font-bold"
+                          : "text-dark-900 text-base font-bold"
+                      }
+                    >
+                      200g
+                    </Text>
                   </View>
 
                   <View className="items-center">
                     <View className="w-16 h-16 rounded-full border-4 border-[#2196F3] items-center justify-center mb-2">
-                      <Text className="text-white text-lg font-bold">10%</Text>
+                      <Text
+                        className={
+                          isDark
+                            ? "text-white text-lg font-bold"
+                            : "text-dark-900 text-lg font-bold"
+                        }
+                      >
+                        10%
+                      </Text>
                     </View>
-                    <Text className="text-gray-400 text-sm">Fats</Text>
-                    <Text className="text-white text-base font-bold">45g</Text>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-gray-400 text-sm"
+                          : "text-gray-500 text-sm"
+                      }
+                    >
+                      Fats
+                    </Text>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-white text-base font-bold"
+                          : "text-dark-900 text-base font-bold"
+                      }
+                    >
+                      45g
+                    </Text>
                   </View>
                 </View>
 
-                <View className="w-full h-[6px] bg-dark-700 rounded-full flex-row overflow-hidden">
+                <View
+                  className={
+                    isDark
+                      ? "w-full h-[6px] bg-dark-700 rounded-full flex-row overflow-hidden"
+                      : "w-full h-[6px] bg-light-200 rounded-full flex-row overflow-hidden"
+                  }
+                >
                   <View
                     className="h-full bg-primary"
                     style={{ width: "65%" }}
@@ -126,7 +228,13 @@ export default function DietScreen() {
               className="px-6"
             >
               <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-white text-lg font-bold">
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-lg font-bold"
+                      : "text-dark-900 text-lg font-bold"
+                  }
+                >
                   Today's Meals
                 </Text>
                 <TouchableOpacity>
@@ -178,7 +286,11 @@ export default function DietScreen() {
               ].map((meal, index) => (
                 <TouchableOpacity
                   key={index}
-                  className="bg-dark-800 rounded-3xl border border-dark-700 p-5 mb-4"
+                  className={
+                    isDark
+                      ? "bg-dark-800 rounded-3xl border border-dark-700 p-5 mb-4"
+                      : "bg-white rounded-3xl border border-light-300 p-5 mb-4 shadow"
+                  }
                   onPress={() => handleMealPress(meal)}
                 >
                   <View className="flex-row justify-between items-center mb-2">
@@ -196,41 +308,84 @@ export default function DietScreen() {
                         />
                       </View>
                       <View>
-                        <Text className="text-gray-400 text-sm">
+                        <Text
+                          className={
+                            isDark
+                              ? "text-gray-400 text-sm"
+                              : "text-gray-500 text-sm"
+                          }
+                        >
                           {meal.time}
                         </Text>
-                        <Text className="text-white font-bold text-base">
+                        <Text
+                          className={
+                            isDark
+                              ? "text-white font-bold text-base"
+                              : "text-dark-900 font-bold text-base"
+                          }
+                        >
                           {meal.title}
                         </Text>
                       </View>
                     </View>
 
                     <View className="flex-row items-center">
-                      <Text className="text-white font-bold text-right mr-2">
+                      <Text
+                        className={
+                          isDark
+                            ? "text-white font-bold text-right mr-2"
+                            : "text-dark-900 font-bold text-right mr-2"
+                        }
+                      >
                         {meal.calories}{" "}
-                        <Text className="text-gray-400 font-normal">kcal</Text>
+                        <Text
+                          className={
+                            isDark
+                              ? "text-gray-400 font-normal"
+                              : "text-gray-500 font-normal"
+                          }
+                        >
+                          kcal
+                        </Text>
                       </Text>
                       <Ionicons
                         name="chevron-forward"
                         size={18}
-                        color="#777777"
+                        color={isDark ? "#777777" : "#999999"}
                       />
                     </View>
                   </View>
 
-                  <Text className="text-gray-400 ml-13" numberOfLines={1}>
+                  <Text
+                    className={
+                      isDark ? "text-gray-400 ml-13" : "text-gray-500 ml-13"
+                    }
+                    numberOfLines={1}
+                  >
                     {meal.items}
                   </Text>
 
                   {!meal.complete && (
                     <TouchableOpacity
-                      className="bg-dark-700 self-start rounded-full px-4 py-2 mt-3 ml-13"
+                      className={
+                        isDark
+                          ? "bg-dark-700 self-start rounded-full px-4 py-2 mt-3 ml-13"
+                          : "bg-light-200 self-start rounded-full px-4 py-2 mt-3 ml-13"
+                      }
                       onPress={(e) => {
                         e.stopPropagation();
                         // Mark meal as eaten functionality would go here
                       }}
                     >
-                      <Text className="text-white text-sm">Mark as eaten</Text>
+                      <Text
+                        className={
+                          isDark
+                            ? "text-white text-sm"
+                            : "text-dark-900 text-sm"
+                        }
+                      >
+                        Mark as eaten
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </TouchableOpacity>
@@ -241,7 +396,11 @@ export default function DietScreen() {
 
         {activeTab === "nutrition" && (
           <View className="px-6 items-center justify-center">
-            <Text className="text-white text-lg">
+            <Text
+              className={
+                isDark ? "text-white text-lg" : "text-dark-900 text-lg"
+              }
+            >
               Nutrition tracking coming soon
             </Text>
           </View>
@@ -249,7 +408,11 @@ export default function DietScreen() {
 
         {activeTab === "water" && (
           <View className="px-6 items-center justify-center">
-            <Text className="text-white text-lg">
+            <Text
+              className={
+                isDark ? "text-white text-lg" : "text-dark-900 text-lg"
+              }
+            >
               Water tracking coming soon
             </Text>
           </View>
@@ -257,7 +420,11 @@ export default function DietScreen() {
 
         {activeTab === "supplements" && (
           <View className="px-6 items-center justify-center">
-            <Text className="text-white text-lg">
+            <Text
+              className={
+                isDark ? "text-white text-lg" : "text-dark-900 text-lg"
+              }
+            >
               Supplements tracking coming soon
             </Text>
           </View>

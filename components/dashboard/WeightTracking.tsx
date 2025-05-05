@@ -12,6 +12,7 @@ interface WeightTrackingProps {
   currentWeight: number;
   weightChange: number;
   period: string;
+  isDark?: boolean;
 }
 
 export const WeightTracking = ({
@@ -19,6 +20,7 @@ export const WeightTracking = ({
   currentWeight,
   weightChange,
   period,
+  isDark = true,
 }: WeightTrackingProps) => {
   return (
     <Animated.View
@@ -26,11 +28,23 @@ export const WeightTracking = ({
       className="px-6 mb-6"
     >
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-white text-lg font-bold">Weight Tracking</Text>
+        <Text
+          className={
+            isDark
+              ? "text-white text-lg font-bold"
+              : "text-dark-900 text-lg font-bold"
+          }
+        >
+          Weight Tracking
+        </Text>
       </View>
 
       <TouchableOpacity
-        className="bg-dark-800 rounded-3xl p-5 border border-dark-700"
+        className={
+          isDark
+            ? "bg-dark-800 rounded-3xl p-5 border border-dark-700"
+            : "bg-white rounded-3xl p-5 border border-light-300 shadow"
+        }
         activeOpacity={0.8}
         onPress={() => router.push("/tracking/weight-tracking")}
       >
@@ -40,7 +54,13 @@ export const WeightTracking = ({
               <Ionicons name="trending-down" size={20} color="#4CAF50" />
             </View>
             <View>
-              <Text className="text-white font-bold">{currentWeight} kg</Text>
+              <Text
+                className={
+                  isDark ? "text-white font-bold" : "text-dark-900 font-bold"
+                }
+              >
+                {currentWeight} kg
+              </Text>
               <Text className="text-[#4CAF50]">
                 {weightChange} kg ({period})
               </Text>
@@ -62,17 +82,28 @@ export const WeightTracking = ({
             height={150}
             strokeColor="#4CAF50"
             fillColor="#4CAF5020"
+            isDark={isDark}
           />
 
           {/* X-axis labels */}
           <View className="flex-row justify-between mt-2">
             {weightData.map((point, i) =>
               i % 2 === 0 ? (
-                <Text key={i} className="text-gray-400 text-xs">
+                <Text
+                  key={i}
+                  className={
+                    isDark ? "text-gray-400 text-xs" : "text-gray-600 text-xs"
+                  }
+                >
                   {point.x}
                 </Text>
               ) : i === weightData.length - 1 ? (
-                <Text key={i} className="text-gray-400 text-xs">
+                <Text
+                  key={i}
+                  className={
+                    isDark ? "text-gray-400 text-xs" : "text-gray-600 text-xs"
+                  }
+                >
                   {point.x}
                 </Text>
               ) : null

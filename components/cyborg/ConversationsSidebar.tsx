@@ -14,6 +14,7 @@ interface ConversationsSidebarProps {
   onNewChat: () => void;
   onSelectConversation: (conversation: ChatConversation) => void;
   onDeleteConversation: (id: string) => void;
+  isDark?: boolean;
 }
 
 const ConversationsSidebar = ({
@@ -25,6 +26,7 @@ const ConversationsSidebar = ({
   onNewChat,
   onSelectConversation,
   onDeleteConversation,
+  isDark = true,
 }: ConversationsSidebarProps) => {
   const insets = useSafeAreaInsets();
 
@@ -40,27 +42,45 @@ const ConversationsSidebar = ({
             bottom: 0,
             right: 0,
             width: "85%",
-            backgroundColor: "#121212",
+            backgroundColor: isDark ? "#121212" : "#FFFFFF",
             zIndex: 999,
             borderLeftWidth: 1,
-            borderLeftColor: "#333",
+            borderLeftColor: isDark ? "#333" : "#e0e0e0",
           },
         ]}
       >
         {/* Sidebar Header */}
         <View
           style={{ paddingTop: insets.top }}
-          className="border-b border-dark-700 px-6 pt-6 pb-4"
+          className={
+            isDark
+              ? "border-b border-dark-700 px-6 pt-6 pb-4"
+              : "border-b border-light-300 px-6 pt-6 pb-4"
+          }
         >
           <View className="flex-row justify-between items-center">
-            <Text className="text-white text-xl font-bold">
+            <Text
+              className={
+                isDark
+                  ? "text-white text-xl font-bold"
+                  : "text-dark-900 text-xl font-bold"
+              }
+            >
               Your Conversations
             </Text>
             <TouchableOpacity
               onPress={onClose}
-              className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center"
+              className={
+                isDark
+                  ? "w-10 h-10 rounded-full bg-dark-800 items-center justify-center"
+                  : "w-10 h-10 rounded-full bg-light-200 items-center justify-center"
+              }
             >
-              <Ionicons name="close" size={22} color="white" />
+              <Ionicons
+                name="close"
+                size={22}
+                color={isDark ? "white" : "#121212"}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -68,7 +88,11 @@ const ConversationsSidebar = ({
         {/* New Chat Button */}
         <View className="px-6 py-4">
           <TouchableOpacity
-            className="bg-dark-800 rounded-full py-3 px-4 flex-row items-center justify-center border border-dark-700"
+            className={
+              isDark
+                ? "bg-dark-800 rounded-full py-3 px-4 flex-row items-center justify-center border border-dark-700"
+                : "bg-white rounded-full py-3 px-4 flex-row items-center justify-center border border-light-300 shadow"
+            }
             onPress={() => {
               onNewChat();
               onClose();
@@ -83,7 +107,13 @@ const ConversationsSidebar = ({
         <ScrollView className="flex-1 px-3">
           {conversations.length === 0 ? (
             <View className="py-6 items-center justify-center">
-              <Text className="text-gray-400 text-center">
+              <Text
+                className={
+                  isDark
+                    ? "text-gray-400 text-center"
+                    : "text-gray-500 text-center"
+                }
+              >
                 No past conversations yet
               </Text>
             </View>
@@ -96,12 +126,22 @@ const ConversationsSidebar = ({
                 <TouchableOpacity
                   className={`flex-row items-center flex-1 p-3 rounded-lg border-l-4 ${
                     currentConversationId === conversation.id
-                      ? "bg-dark-700 border-primary"
-                      : "bg-dark-800 border-dark-800"
+                      ? isDark
+                        ? "bg-dark-700 border-primary"
+                        : "bg-light-200 border-primary"
+                      : isDark
+                      ? "bg-dark-800 border-dark-800"
+                      : "bg-white border-white"
                   }`}
                   onPress={() => onSelectConversation(conversation)}
                 >
-                  <View className="w-10 h-10 rounded-full bg-dark-700 items-center justify-center mr-3">
+                  <View
+                    className={
+                      isDark
+                        ? "w-10 h-10 rounded-full bg-dark-700 items-center justify-center mr-3"
+                        : "w-10 h-10 rounded-full bg-light-300 items-center justify-center mr-3"
+                    }
+                  >
                     <Ionicons
                       name="chatbubble-ellipses-outline"
                       size={20}
@@ -109,10 +149,24 @@ const ConversationsSidebar = ({
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-white font-medium" numberOfLines={1}>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-white font-medium"
+                          : "text-dark-900 font-medium"
+                      }
+                      numberOfLines={1}
+                    >
                       {conversation.title || "Conversation"}
                     </Text>
-                    <Text className="text-gray-400 text-xs" numberOfLines={1}>
+                    <Text
+                      className={
+                        isDark
+                          ? "text-gray-400 text-xs"
+                          : "text-gray-500 text-xs"
+                      }
+                      numberOfLines={1}
+                    >
                       {new Date(conversation.updatedAt).toLocaleString()}
                     </Text>
                   </View>
@@ -122,7 +176,11 @@ const ConversationsSidebar = ({
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="p-3 ml-1 bg-dark-800 rounded-lg"
+                  className={
+                    isDark
+                      ? "p-3 ml-1 bg-dark-800 rounded-lg"
+                      : "p-3 ml-1 bg-white rounded-lg shadow"
+                  }
                   onPress={() => onDeleteConversation(conversation.id)}
                 >
                   <Ionicons name="trash-outline" size={20} color="#FF4545" />

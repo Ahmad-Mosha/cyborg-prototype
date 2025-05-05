@@ -14,11 +14,13 @@ import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import foodService from "@/api/foodService";
 import { useTabBar } from "@/contexts/TabBarContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Nutrient } from "@/types/diet";
 
 export default function FoodSearchScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { isDark } = useTheme();
   const { mealId, mealTitle } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -155,17 +157,8 @@ export default function FoodSearchScreen() {
 
     // Keep simulation for meal scanning for now
     if (type === "meal") {
-      // Simulate AI analysis after a delay (replace with actual capture logic)
-      // setTimeout(() => {
-      //   setRecognizedFoods([
-      //     "Grilled Chicken Breast",
-      //     "Brown Rice",
-      //     "Mixed Vegetables",
-      //   ]);
-      //   // Keep scanning state true until user cancels or selects
-      // }, 3000);
+      // Simulation code remains the same
     }
-    // Barcode scanning will be handled by the CameraView's onBarcodeScanned prop
   };
 
   const handleBarCodeScanned = async ({
@@ -290,7 +283,13 @@ export default function FoodSearchScreen() {
   if (!permission) {
     // Camera permissions are still loading
     return (
-      <View className="flex-1 bg-dark-900 justify-center items-center">
+      <View
+        className={
+          isDark
+            ? "flex-1 bg-dark-900 justify-center items-center"
+            : "flex-1 bg-light-100 justify-center items-center"
+        }
+      >
         <ActivityIndicator size="large" color="#BBFD00" />
       </View>
     );
@@ -299,8 +298,20 @@ export default function FoodSearchScreen() {
   if (!permission.granted) {
     // Camera permissions are not granted yet
     return (
-      <View className="flex-1 bg-dark-900 justify-center items-center px-6">
-        <Text className="text-white text-center mb-4">
+      <View
+        className={
+          isDark
+            ? "flex-1 bg-dark-900 justify-center items-center px-6"
+            : "flex-1 bg-light-100 justify-center items-center px-6"
+        }
+      >
+        <Text
+          className={
+            isDark
+              ? "text-white text-center mb-4"
+              : "text-dark-900 text-center mb-4"
+          }
+        >
           We need your permission to show the camera
         </Text>
         <TouchableOpacity
@@ -314,22 +325,35 @@ export default function FoodSearchScreen() {
   }
 
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       {/* Header - Conditionally render based on scanning state */}
       {!scanning && (
         <View
           style={{ paddingTop: insets.top + 30 }}
           className="px-6 pt-6 pb-4"
         >
-          {/* ... existing header content ... */}
           <View className="flex-row justify-between items-center mb-4">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+              className={
+                isDark
+                  ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+                  : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
+              }
             >
-              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+              <Ionicons
+                name="arrow-back"
+                size={20}
+                color={isDark ? "#FFFFFF" : "#121212"}
+              />
             </TouchableOpacity>
-            <Text className="text-white text-lg font-bold">
+            <Text
+              className={
+                isDark
+                  ? "text-white text-lg font-bold"
+                  : "text-dark-900 text-lg font-bold"
+              }
+            >
               Add food to {mealTitle}
             </Text>
             <View className="w-10" />
@@ -338,20 +362,36 @@ export default function FoodSearchScreen() {
           {/* Search Bar */}
           <Animated.View
             entering={FadeInDown.duration(400)}
-            className="flex-row bg-dark-800 rounded-xl px-4 py-2 items-center mb-4"
+            className={
+              isDark
+                ? "flex-row bg-dark-800 rounded-xl px-4 py-2 items-center mb-4"
+                : "flex-row bg-white rounded-xl px-4 py-2 items-center mb-4 shadow border border-light-300"
+            }
           >
-            <Ionicons name="search-outline" size={20} color="#777777" />
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={isDark ? "#777777" : "#999999"}
+            />
             <TextInput
-              className="flex-1 text-white ml-2 text-base"
+              className={
+                isDark
+                  ? "flex-1 text-white ml-2 text-base"
+                  : "flex-1 text-dark-900 ml-2 text-base"
+              }
               placeholder="Search for a food..."
-              placeholderTextColor="#777777"
+              placeholderTextColor={isDark ? "#777777" : "#999999"}
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => handleSearch("")}>
-                <Ionicons name="close-circle" size={20} color="#777777" />
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={isDark ? "#777777" : "#999999"}
+                />
               </TouchableOpacity>
             )}
           </Animated.View>
@@ -361,29 +401,60 @@ export default function FoodSearchScreen() {
       {!scanning ? (
         <>
           {/* Quick scan options */}
-          {/* ... existing scan buttons ... */}
           <Animated.View
             entering={FadeInUp.delay(100).duration(400)}
             className="px-6 mb-6 flex-row justify-between"
           >
             <TouchableOpacity
-              className="bg-dark-800 rounded-2xl p-4 flex-1 mr-4 items-center justify-center"
+              className={
+                isDark
+                  ? "bg-dark-800 rounded-2xl p-4 flex-1 mr-4 items-center justify-center"
+                  : "bg-white rounded-2xl p-4 flex-1 mr-4 items-center justify-center shadow border border-light-300"
+              }
               onPress={() => startScanning("barcode")}
             >
-              <View className="bg-dark-700 rounded-full p-3 mb-2">
+              <View
+                className={
+                  isDark
+                    ? "bg-dark-700 rounded-full p-3 mb-2"
+                    : "bg-light-200 rounded-full p-3 mb-2"
+                }
+              >
                 <Ionicons name="barcode-outline" size={24} color="#BBFD00" />
               </View>
-              <Text className="text-white font-bold">Scan Barcode</Text>
+              <Text
+                className={
+                  isDark ? "text-white font-bold" : "text-dark-900 font-bold"
+                }
+              >
+                Scan Barcode
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-dark-800 rounded-2xl p-4 flex-1 ml-4 items-center justify-center"
+              className={
+                isDark
+                  ? "bg-dark-800 rounded-2xl p-4 flex-1 ml-4 items-center justify-center"
+                  : "bg-white rounded-2xl p-4 flex-1 ml-4 items-center justify-center shadow border border-light-300"
+              }
               onPress={() => startScanning("meal")}
             >
-              <View className="bg-dark-700 rounded-full p-3 mb-2">
+              <View
+                className={
+                  isDark
+                    ? "bg-dark-700 rounded-full p-3 mb-2"
+                    : "bg-light-200 rounded-full p-3 mb-2"
+                }
+              >
                 <Ionicons name="camera-outline" size={24} color="#BBFD00" />
               </View>
-              <Text className="text-white font-bold">Scan Meal</Text>
+              <Text
+                className={
+                  isDark ? "text-white font-bold" : "text-dark-900 font-bold"
+                }
+              >
+                Scan Meal
+              </Text>
             </TouchableOpacity>
           </Animated.View>
 
@@ -395,17 +466,202 @@ export default function FoodSearchScreen() {
             {isSearching ? (
               <View className="items-center justify-center py-10">
                 <ActivityIndicator size="large" color="#BBFD00" />
-                <Text className="text-gray-400 mt-4">Searching Barcode...</Text>
+                <Text
+                  className={
+                    isDark ? "text-gray-400 mt-4" : "text-gray-500 mt-4"
+                  }
+                >
+                  Searching Barcode...
+                </Text>
               </View>
             ) : isAnalyzing ? (
               <View className="items-center justify-center py-10">
                 <ActivityIndicator size="large" color="#BBFD00" />
-                <Text className="text-gray-400 mt-4">Analyzing Meal...</Text>
+                <Text
+                  className={
+                    isDark ? "text-gray-400 mt-4" : "text-gray-500 mt-4"
+                  }
+                >
+                  Analyzing Meal...
+                </Text>
               </View>
+            ) : searchResults.length > 0 ? (
+              <>
+                <View className="px-6 mb-4">
+                  <Text
+                    className={
+                      isDark
+                        ? "text-white text-lg font-bold mb-3"
+                        : "text-dark-900 text-lg font-bold mb-3"
+                    }
+                  >
+                    Search Results
+                  </Text>
+                  {searchResults.map((food, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      className={
+                        isDark
+                          ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+                          : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
+                      }
+                      onPress={() => handleFoodSelect(food)}
+                    >
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-1">
+                          <Text
+                            className={
+                              isDark
+                                ? "text-white font-bold"
+                                : "text-dark-900 font-bold"
+                            }
+                          >
+                            {food.name}
+                          </Text>
+                          <Text
+                            className={
+                              isDark ? "text-gray-400" : "text-gray-500"
+                            }
+                          >
+                            {food.brand}, {food.serving}
+                          </Text>
+                        </View>
+                        <View className="items-end">
+                          <Text
+                            className={isDark ? "text-white" : "text-dark-900"}
+                          >
+                            {food.calories} kcal
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            ) : recognizedFoods.length > 0 ? (
+              <>
+                <View className="px-6 mb-4">
+                  <Text
+                    className={
+                      isDark
+                        ? "text-white text-lg font-bold mb-3"
+                        : "text-dark-900 text-lg font-bold mb-3"
+                    }
+                  >
+                    Recognized Foods
+                  </Text>
+                  {recognizedFoods.map((food, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      className={
+                        isDark
+                          ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+                          : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
+                      }
+                      onPress={() => selectRecognizedFood(food)}
+                    >
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-1">
+                          <Text
+                            className={
+                              isDark
+                                ? "text-white font-bold"
+                                : "text-dark-900 font-bold"
+                            }
+                          >
+                            {food}
+                          </Text>
+                          <Text
+                            className={
+                              isDark ? "text-gray-400" : "text-gray-500"
+                            }
+                          >
+                            Tap to add to meal
+                          </Text>
+                        </View>
+                        <Ionicons
+                          name="add-circle-outline"
+                          size={24}
+                          color="#BBFD00"
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
             ) : (
               <>
-                {/* ... existing search results logic (uses searchResults state) ... */}
-                {/* ... existing recent foods logic (uses recognizedFoods state) ... */}
+                <View className="px-6 mb-4">
+                  <Text
+                    className={
+                      isDark
+                        ? "text-white text-lg font-bold mb-3"
+                        : "text-dark-900 text-lg font-bold mb-3"
+                    }
+                  >
+                    Recent Foods
+                  </Text>
+                  {foodDatabase.slice(0, 3).map((food, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      className={
+                        isDark
+                          ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+                          : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
+                      }
+                      onPress={() => handleFoodSelect(food)}
+                    >
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-1">
+                          <Text
+                            className={
+                              isDark
+                                ? "text-white font-bold"
+                                : "text-dark-900 font-bold"
+                            }
+                          >
+                            {food.name}
+                          </Text>
+                          <Text
+                            className={
+                              isDark ? "text-gray-400" : "text-gray-500"
+                            }
+                          >
+                            {food.brand}, {food.serving}
+                          </Text>
+                        </View>
+                        <View className="items-end">
+                          <Text
+                            className={isDark ? "text-white" : "text-dark-900"}
+                          >
+                            {food.calories} kcal
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View className="px-6">
+                  <Text
+                    className={
+                      isDark
+                        ? "text-white text-lg font-bold mb-3"
+                        : "text-dark-900 text-lg font-bold mb-3"
+                    }
+                  >
+                    My Foods
+                  </Text>
+                  <Text
+                    className={
+                      isDark
+                        ? "text-gray-400 text-center py-6"
+                        : "text-gray-500 text-center py-6"
+                    }
+                  >
+                    No saved foods yet
+                  </Text>
+                </View>
               </>
             )}
           </ScrollView>
@@ -454,7 +710,7 @@ export default function FoodSearchScreen() {
                 </Text>
                 {scanningType === "meal" && (
                   <TouchableOpacity
-                    onPress={takePicture} // Implement takePicture function
+                    onPress={takePicture}
                     className="w-20 h-20 bg-white rounded-full items-center justify-center border-4 border-dark-700"
                   >
                     {/* Inner circle or icon */}

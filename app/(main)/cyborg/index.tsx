@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
 } from "react-native-reanimated";
+import { useTheme } from "@/contexts/ThemeContext";
 
 import { MessageType } from "@/types/cyborg";
 import chatService from "@/api/chatService";
@@ -17,10 +18,12 @@ import {
   ConversationsSidebar,
   CyborgBrainVisualization,
 } from "@/components/cyborg";
+import { showAlert, destructiveAlert } from "@/utils/AlertUtil";
 
 const { width } = Dimensions.get("window");
 
 export default function CyborgScreen() {
+  const { isDark } = useTheme();
   const [question, setQuestion] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentConversation, setCurrentConversation] =
@@ -144,9 +147,12 @@ export default function CyborgScreen() {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
-      Alert.alert(
+      showAlert(
         "Message Error",
-        "Failed to send your message. Please try again."
+        "Failed to send your message. Please try again.",
+        [],
+        "alert-circle",
+        "#FF4757"
       );
 
       // Remove the last user message if API call fails
@@ -163,9 +169,12 @@ export default function CyborgScreen() {
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
-        Alert.alert(
+        showAlert(
           "Permission Required",
-          "Please allow access to your media library to upload videos."
+          "Please allow access to your media library to upload videos.",
+          [],
+          "information-circle",
+          "#2196F3"
         );
         return;
       }
@@ -201,9 +210,12 @@ export default function CyborgScreen() {
           setMessages((prev) => [...prev, aiMessage]);
         } catch (error) {
           console.error("Error processing video:", error);
-          Alert.alert(
+          showAlert(
             "Video Processing Error",
-            "Failed to process your video. Please try again."
+            "Failed to process your video. Please try again.",
+            [],
+            "alert-circle",
+            "#FF4757"
           );
 
           // Remove the last user message if API call fails
@@ -213,8 +225,14 @@ export default function CyborgScreen() {
         }
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to upload video. Please try again.");
-      console.error("Video upload error:", error);
+      console.error("Error uploading video:", error);
+      showAlert(
+        "Upload Failed",
+        "There was a problem uploading your video. Please try again.",
+        [],
+        "alert-circle",
+        "#FF4757"
+      );
     }
   };
 
@@ -237,47 +255,42 @@ export default function CyborgScreen() {
   };
 
   // Handle conversation deletion
-  const handleDeleteConversation = async (conversationId: string) => {
+  const handleDeleteConversation = (conversationId: string) => {
     try {
-      // Confirm deletion with the user
-      Alert.alert(
+      destructiveAlert(
         "Delete Conversation",
         "Are you sure you want to delete this conversation? This action cannot be undone.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              setIsProcessing(true);
+        async () => {
+          setIsProcessing(true);
 
-              try {
-                // Call the API to delete the conversation
-                await chatService.deleteConversation(conversationId);
+          try {
+            // Call the API to delete the conversation
+            await chatService.deleteConversation(conversationId);
 
-                // Remove the conversation from the UI state
-                setConversations((prevConversations) =>
-                  prevConversations.filter((conv) => conv.id !== conversationId)
-                );
+            // Remove the conversation from the UI state
+            setConversations((prevConversations) =>
+              prevConversations.filter((conv) => conv.id !== conversationId)
+            );
 
-                // If the deleted conversation was the current one, create a new one
-                if (currentConversation?.id === conversationId) {
-                  const newConv = await chatService.createConversation();
-                  setCurrentConversation(newConv);
-                  setMessages([chatService.getWelcomeMessage()]);
-                }
-              } catch (error) {
-                console.error("Error deleting conversation:", error);
-                Alert.alert(
-                  "Error",
-                  "Failed to delete the conversation. Please try again."
-                );
-              } finally {
-                setIsProcessing(false);
-              }
-            },
-          },
-        ]
+            // If the deleted conversation was the current one, create a new one
+            if (currentConversation?.id === conversationId) {
+              const newConv = await chatService.createConversation();
+              setCurrentConversation(newConv);
+              setMessages([chatService.getWelcomeMessage()]);
+            }
+          } catch (error) {
+            console.error("Error deleting conversation:", error);
+            showAlert(
+              "Error",
+              "Failed to delete the conversation. Please try again.",
+              [],
+              "alert-circle",
+              "#FF4757"
+            );
+          } finally {
+            setIsProcessing(false);
+          }
+        }
       );
     } catch (error) {
       console.error("Error in delete conversation flow:", error);
@@ -285,18 +298,26 @@ export default function CyborgScreen() {
   };
 
   return (
-    <View className="flex-1 bg-dark-900" style={{ paddingBottom: 80 }}>
+    <View
+      className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}
+      style={{ paddingBottom: 80 }}
+    >
       {/* Header */}
       <ChatHeader
         onMenuPress={toggleSidebar}
         onNewChatPress={handleNewConversation}
+        isDark={isDark}
       />
 
       {/* Cyborg Brain Visualization */}
-      <CyborgBrainVisualization />
+      <CyborgBrainVisualization isDark={isDark} />
 
       {/* Chat Messages */}
-      <ChatMessages messages={messages} isProcessing={isProcessing} />
+      <ChatMessages
+        messages={messages}
+        isProcessing={isProcessing}
+        isDark={isDark}
+      />
 
       {/* Input Box */}
       <ChatInput
@@ -304,6 +325,7 @@ export default function CyborgScreen() {
         setQuestion={setQuestion}
         onSend={handleSendMessage}
         onVideoUpload={handleVideoUpload}
+        isDark={isDark}
       />
 
       {/* Conversations Sidebar */}
@@ -316,6 +338,7 @@ export default function CyborgScreen() {
         onNewChat={handleNewConversation}
         onSelectConversation={selectConversation}
         onDeleteConversation={handleDeleteConversation}
+        isDark={isDark}
       />
     </View>
   );

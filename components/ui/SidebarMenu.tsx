@@ -1,16 +1,25 @@
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  Animated,
   StyleSheet,
+  Dimensions,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS, SHADOWS } from "../../utils/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, SHADOWS } from "@/utils/constants/theme";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useTabBar } from "@/contexts/TabBarContext";
+import { destructiveAlert } from "@/utils/AlertUtil";
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -19,58 +28,66 @@ interface SidebarMenuProps {
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({ isOpen, onClose }) => {
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(-300)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const { isDark } = useTheme();
+  const { setIsVisible } = useTabBar();
+  const slideAnim = useSharedValue(-300); 
+  const backdropOpacity = useSharedValue(0);
+
+  // Navigate to a screen and close sidebar
+  const navigateTo = (path: any) => {
+    onClose();
+    setTimeout(() => router.push(path), 300);
+  };
+
+  // Handle logout with confirmation
+  const handleLogout = () => {
+    destructiveAlert(
+      "Logout",
+      "Are you sure you want to logout?",
+      () => {
+        onClose();
+        // Short delay to allow menu closing animation
+        setTimeout(() => {
+          router.replace("/(auth)");
+        }, 300);
+      },
+      undefined,
+      "Logout",
+      "Cancel",
+      "log-out-outline"
+    );
+  };
 
   useEffect(() => {
     if (isOpen) {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.5,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Open the menu with animation
+      slideAnim.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+      backdropOpacity.value = withTiming(0.5, { duration: 300 });
+      setIsVisible(false); // Hide the bottom tab bar when sidebar is open
     } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: -300,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Close the menu with animation
+      slideAnim.value = withTiming(-300, {
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+      });
+      backdropOpacity.value = withTiming(0, { duration: 250 });
+      setIsVisible(true); // Show the bottom tab bar when sidebar is closed
     }
-  }, [isOpen]);
+  }, [isOpen, setIsVisible]);
 
-  const navigateTo = (route: string) => {
-    onClose();
-    setTimeout(() => router.push(route), 300);
-  };
-
-  const handleLogout = () => {
-    onClose();
-    setTimeout(() => router.replace("/(auth)"), 300);
-    // Add actual logout logic here
-  };
-
-  if (!isOpen) return null;
+  const backdropAnimStyle = useAnimatedStyle(() => {
+    return {
+      opacity: backdropOpacity.value,
+      display: backdropOpacity.value === 0 ? "none" : "flex",
+    };
+  });
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Animated.View
-        style={[styles.backdrop, { opacity }]}
-        pointerEvents={isOpen ? "auto" : "none"}
-      >
+    <View style={styles.container} pointerEvents={isOpen ? "auto" : "none"}>
+      <Animated.View style={[styles.backdrop, backdropAnimStyle]}>
         <Pressable style={styles.backdropPressable} onPress={onClose} />
       </Animated.View>
 
@@ -80,29 +97,68 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ isOpen, onClose }) => {
           {
             transform: [{ translateX: slideAnim }],
             paddingTop: insets.top + 20,
+            backgroundColor: isDark ? COLORS.darkCard : "#FFFFFF",
+            borderRightColor: isDark
+              ? "rgba(255,255,255,0.1)"
+              : "rgba(0,0,0,0.05)",
+            borderRightWidth: 1,
           },
         ]}
       >
         <View style={styles.header}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={COLORS.textLight} />
+          <TouchableOpacity
+            style={[
+              styles.closeButton,
+              {
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.05)",
+              },
+            ]}
+            onPress={onClose}
+          >
+            <Ionicons
+              name="close"
+              size={24}
+              color={isDark ? COLORS.textLight : COLORS.textDark}
+            />
           </TouchableOpacity>
-          <Text style={styles.title}>Menu</Text>
+          <Text
+            style={[
+              styles.title,
+              { color: isDark ? COLORS.textLight : COLORS.textDark },
+            ]}
+          >
+            Menu
+          </Text>
         </View>
 
         <View style={styles.menuItems}>
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[
+              styles.menuItem,
+              { borderBottomColor: isDark ? COLORS.darkBorder : "#F3F4F6" },
+            ]}
             onPress={() => navigateTo("/(main)/profile")}
           >
             <View style={styles.iconContainer}>
               <Ionicons name="person" size={22} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuItemText}>Profile</Text>
+            <Text
+              style={[
+                styles.menuItemText,
+                { color: isDark ? COLORS.textLight : COLORS.textDark },
+              ]}
+            >
+              Profile
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[
+              styles.menuItem,
+              { borderBottomColor: isDark ? COLORS.darkBorder : "#F3F4F6" },
+            ]}
             onPress={() => navigateTo("/(main)/exercises")}
           >
             <View style={styles.iconContainer}>
@@ -112,11 +168,21 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ isOpen, onClose }) => {
                 color={COLORS.primary}
               />
             </View>
-            <Text style={styles.menuItemText}>Exercises</Text>
+            <Text
+              style={[
+                styles.menuItemText,
+                { color: isDark ? COLORS.textLight : COLORS.textDark },
+              ]}
+            >
+              Exercises
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[
+              styles.menuItem,
+              { borderBottomColor: isDark ? COLORS.darkBorder : "#F3F4F6" },
+            ]}
             onPress={() => navigateTo("/(main)/settings")}
           >
             <View style={styles.iconContainer}>
@@ -126,7 +192,14 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ isOpen, onClose }) => {
                 color={COLORS.primary}
               />
             </View>
-            <Text style={styles.menuItemText}>Settings</Text>
+            <Text
+              style={[
+                styles.menuItemText,
+                { color: isDark ? COLORS.textLight : COLORS.textDark },
+              ]}
+            >
+              Settings
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -167,7 +240,6 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     width: 280,
-    backgroundColor: COLORS.darkCard, // Changed to app's dark card color
     borderTopRightRadius: 20,
     borderBottomRightRadius: 20,
     paddingHorizontal: 20,
@@ -185,12 +257,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.1)",
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
-    color: COLORS.textLight,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -202,7 +272,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.darkBorder,
   },
   iconContainer: {
     width: 40,
@@ -214,7 +283,6 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   menuItemText: {
-    color: COLORS.textLight,
     fontSize: 16,
     fontWeight: "500",
   },

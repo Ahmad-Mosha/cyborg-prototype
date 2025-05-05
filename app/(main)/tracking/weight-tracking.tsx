@@ -21,6 +21,7 @@ import Animated, {
 import Svg, { Path, Circle, Line, Rect } from "react-native-svg";
 import { Dimensions } from "react-native";
 import { router } from "expo-router";
+import { useTheme } from "../../../contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -39,6 +40,7 @@ const SimpleLineChart = ({
   fillColor = "#4CAF5020",
   showDots = true,
   showLabels = true,
+  isDark = true,
 }: {
   data: DataPoint[];
   width: number;
@@ -47,6 +49,7 @@ const SimpleLineChart = ({
   fillColor?: string;
   showDots?: boolean;
   showLabels?: boolean;
+  isDark?: boolean;
 }) => {
   // Get min/max values for scaling
   const maxY = Math.max(...data.map((d: DataPoint) => d.y)) + 2;
@@ -122,7 +125,7 @@ const SimpleLineChart = ({
             y1={height * position}
             x2={width}
             y2={height * position}
-            stroke="#333"
+            stroke={isDark ? "#333" : "#e0e0e0"}
             strokeWidth={1}
             strokeDasharray="5, 5"
           />
@@ -155,6 +158,7 @@ export default function WeightTrackingScreen() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [currentWeight, setCurrentWeight] = useState("79.5");
   const [timeframe, setTimeframe] = useState("month"); // week, month, year, all
+  const { isDark } = useTheme();
 
   // Sample data for demo
   const monthlyData = [
@@ -239,16 +243,28 @@ export default function WeightTrackingScreen() {
   };
 
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       {/* Header */}
       <View
         style={{ paddingTop: insets.top + 10 }}
         className="px-6 pt-2 pb-4 flex-row items-center justify-between"
       >
         <TouchableOpacity onPress={() => router.back()} className="p-2">
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={isDark ? "white" : "#121212"}
+          />
         </TouchableOpacity>
-        <Text className="text-white text-xl font-bold">Weight Tracking</Text>
+        <Text
+          className={
+            isDark
+              ? "text-white text-xl font-bold"
+              : "text-dark-900 text-xl font-bold"
+          }
+        >
+          Weight Tracking
+        </Text>
         <TouchableOpacity
           className="bg-[#4CAF50] p-2 rounded-full"
           onPress={() => setShowUpdateModal(true)}
@@ -266,11 +282,25 @@ export default function WeightTrackingScreen() {
           entering={FadeInDown.delay(100).duration(400)}
           className="px-6 mb-6"
         >
-          <View className="bg-dark-800 rounded-3xl p-5 border border-dark-700">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-3xl p-5 border border-dark-700"
+                : "bg-white rounded-3xl p-5 border border-light-300 shadow"
+            }
+          >
             <View className="flex-row justify-between items-center mb-4">
               <View>
-                <Text className="text-gray-400">Current Weight</Text>
-                <Text className="text-white text-3xl font-bold">
+                <Text className={isDark ? "text-gray-400" : "text-gray-500"}>
+                  Current Weight
+                </Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-3xl font-bold"
+                      : "text-dark-900 text-3xl font-bold"
+                  }
+                >
                   {currentValue} kg
                 </Text>
               </View>
@@ -301,7 +331,9 @@ export default function WeightTrackingScreen() {
                 size={20}
                 color={change < 0 ? "#4CAF50" : "#F44336"}
               />
-              <Text className="text-gray-400 ml-2">
+              <Text
+                className={isDark ? "text-gray-400 ml-2" : "text-gray-500 ml-2"}
+              >
                 {timeframe === "week"
                   ? "Past 7 days"
                   : timeframe === "month"
@@ -319,7 +351,13 @@ export default function WeightTrackingScreen() {
           entering={FadeInDown.delay(200).duration(400)}
           className="px-6 mb-4"
         >
-          <View className="flex-row bg-dark-800 rounded-full p-1">
+          <View
+            className={
+              isDark
+                ? "flex-row bg-dark-800 rounded-full p-1"
+                : "flex-row bg-white rounded-full p-1 shadow"
+            }
+          >
             {["week", "month", "year", "all"].map((period) => (
               <TouchableOpacity
                 key={period}
@@ -332,7 +370,9 @@ export default function WeightTrackingScreen() {
                   className={`text-center text-sm ${
                     timeframe === period
                       ? "text-dark-900 font-bold"
-                      : "text-gray-400"
+                      : isDark
+                      ? "text-gray-400"
+                      : "text-gray-500"
                   }`}
                 >
                   {period.charAt(0).toUpperCase() + period.slice(1)}
@@ -347,8 +387,20 @@ export default function WeightTrackingScreen() {
           entering={FadeInDown.delay(300).duration(400)}
           className="px-6 mb-6"
         >
-          <View className="bg-dark-800 rounded-3xl p-5 border border-dark-700">
-            <Text className="text-white text-lg font-bold mb-4">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-3xl p-5 border border-dark-700"
+                : "bg-white rounded-3xl p-5 border border-light-300 shadow"
+            }
+          >
+            <Text
+              className={
+                isDark
+                  ? "text-white text-lg font-bold mb-4"
+                  : "text-dark-900 text-lg font-bold mb-4"
+              }
+            >
               Weight Trend
             </Text>
 
@@ -360,6 +412,7 @@ export default function WeightTrackingScreen() {
                 strokeColor="#4CAF50"
                 fillColor="#4CAF5020"
                 showDots={true}
+                isDark={isDark}
               />
             </View>
 
@@ -368,7 +421,9 @@ export default function WeightTrackingScreen() {
               {selectedData.map((point, i) => (
                 <Text
                   key={i}
-                  className="text-gray-400 text-xs"
+                  className={
+                    isDark ? "text-gray-400 text-xs" : "text-gray-600 text-xs"
+                  }
                   style={{
                     display:
                       timeframe === "week" ||
@@ -391,17 +446,31 @@ export default function WeightTrackingScreen() {
           entering={FadeInDown.delay(400).duration(400)}
           className="px-6 mb-6"
         >
-          <Text className="text-white text-lg font-bold mb-4">
+          <Text
+            className={
+              isDark
+                ? "text-white text-lg font-bold mb-4"
+                : "text-dark-900 text-lg font-bold mb-4"
+            }
+          >
             Weight History
           </Text>
 
-          <View className="bg-dark-800 rounded-3xl border border-dark-700 overflow-hidden">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-3xl border border-dark-700 overflow-hidden"
+                : "bg-white rounded-3xl border border-light-300 overflow-hidden shadow"
+            }
+          >
             {selectedData.map((entry, index) => (
               <View
                 key={index}
                 className={`px-5 py-4 flex-row justify-between items-center ${
                   index < selectedData.length - 1
-                    ? "border-b border-dark-700"
+                    ? isDark
+                      ? "border-b border-dark-700"
+                      : "border-b border-light-300"
                     : ""
                 }`}
               >
@@ -413,9 +482,23 @@ export default function WeightTrackingScreen() {
                       color="#4CAF50"
                     />
                   </View>
-                  <Text className="text-white font-medium">{entry.x}</Text>
+                  <Text
+                    className={
+                      isDark
+                        ? "text-white font-medium"
+                        : "text-dark-900 font-medium"
+                    }
+                  >
+                    {entry.x}
+                  </Text>
                 </View>
-                <Text className="text-white font-bold text-lg">
+                <Text
+                  className={
+                    isDark
+                      ? "text-white font-bold text-lg"
+                      : "text-dark-900 font-bold text-lg"
+                  }
+                >
                   {entry.y} kg
                 </Text>
               </View>
@@ -429,29 +512,63 @@ export default function WeightTrackingScreen() {
         <View className="absolute inset-0 bg-black/75 justify-center items-center p-6">
           <Animated.View
             entering={FadeIn.duration(200)}
-            className="bg-dark-800 rounded-3xl w-full p-6"
+            className={
+              isDark
+                ? "bg-dark-800 rounded-3xl w-full p-6"
+                : "bg-white rounded-3xl w-full p-6 shadow"
+            }
           >
-            <Text className="text-white text-xl font-bold mb-6 text-center">
+            <Text
+              className={
+                isDark
+                  ? "text-white text-xl font-bold mb-6 text-center"
+                  : "text-dark-900 text-xl font-bold mb-6 text-center"
+              }
+            >
               Update Weight
             </Text>
 
             <View className="flex-row items-center justify-center mb-8">
               <TextInput
-                className="bg-dark-700 text-white text-3xl font-bold text-center px-6 py-4 rounded-xl w-40"
+                className={
+                  isDark
+                    ? "bg-dark-700 text-white text-3xl font-bold text-center px-6 py-4 rounded-xl w-40"
+                    : "bg-light-200 text-dark-900 text-3xl font-bold text-center px-6 py-4 rounded-xl w-40"
+                }
                 keyboardType="decimal-pad"
                 value={currentWeight}
                 onChangeText={setCurrentWeight}
                 selectionColor="#BBFD00"
               />
-              <Text className="text-white text-3xl font-bold ml-2">kg</Text>
+              <Text
+                className={
+                  isDark
+                    ? "text-white text-3xl font-bold ml-2"
+                    : "text-dark-900 text-3xl font-bold ml-2"
+                }
+              >
+                kg
+              </Text>
             </View>
 
             <View className="flex-row">
               <TouchableOpacity
-                className="bg-dark-700 flex-1 py-4 rounded-full mr-2"
+                className={
+                  isDark
+                    ? "bg-dark-700 flex-1 py-4 rounded-full mr-2"
+                    : "bg-light-200 flex-1 py-4 rounded-full mr-2"
+                }
                 onPress={() => setShowUpdateModal(false)}
               >
-                <Text className="text-white font-bold text-center">Cancel</Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white font-bold text-center"
+                      : "text-dark-900 font-bold text-center"
+                  }
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="bg-primary flex-1 py-4 rounded-full ml-2"

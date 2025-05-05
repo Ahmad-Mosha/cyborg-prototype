@@ -15,6 +15,7 @@ export const SimpleLineChart = ({
   strokeColor = "#4CAF50",
   fillColor = "#4CAF5020",
   showDots = true,
+  isDark = true,
 }: {
   data: DataPoint[];
   width: number;
@@ -22,6 +23,7 @@ export const SimpleLineChart = ({
   strokeColor?: string;
   fillColor?: string;
   showDots?: boolean;
+  isDark?: boolean;
 }) => {
   // Get min/max values for scaling
   const maxY = Math.max(...data.map((d: DataPoint) => d.y)) + 2;
@@ -63,7 +65,7 @@ export const SimpleLineChart = ({
           y1={height * position}
           x2={width}
           y2={height * position}
-          stroke="#333"
+          stroke={isDark ? "#333" : "#e0e0e0"}
           strokeWidth={1}
           strokeDasharray="5, 5"
         />

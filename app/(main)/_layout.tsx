@@ -18,13 +18,15 @@ import Animated, {
   interpolateColor,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { TabBarProvider, useTabBar } from "../../contexts/TabBarContext";
+import { useTabBar } from "../../contexts/TabBarContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import SidebarMenu from "../../components/ui/SidebarMenu";
 
 // Custom tab bar component with modern design
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { isVisible } = useTabBar();
+  const { isDark } = useTheme();
   const [prevFocusedIndex, setPrevFocusedIndex] = useState(0);
 
   // Shared animation values
@@ -69,7 +71,6 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     };
   });
 
-  // Pre-define animated styles for a fixed number of tabs
   // This ensures hooks are always called in the same order
   const tabAnimatedStyles = [0, 1, 2, 3, 4].map((index) => {
     return useAnimatedStyle(() => {
@@ -103,7 +104,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     >
       <Animated.View
         style={[styles.floatingTabBar, tabBarAnimatedStyle]}
-        className="flex-row items-center justify-around py-3 px-4 bg-dark-800/90 rounded-full"
+        className={`flex-row items-center justify-around py-3 px-4 ${
+          isDark ? "bg-dark-800/90" : "bg-white/95"
+        } rounded-full`}
       >
         {/* Map over the filtered routes instead of state.routes */}
         {visibleRoutes.map((route: any, index: number) => {
@@ -120,7 +123,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
           // Function to determine which icon to display based on screen name
           const getIcon = (focused: boolean) => {
-            const color = focused ? "#BBFD00" : "#777777";
+            const color = focused ? "#BBFD00" : isDark ? "#777777" : "#999999";
             const size = 24; // Increased icon size
 
             // Extract the base route name (folder name)
@@ -233,39 +236,53 @@ export default function MainLayout() {
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { setIsVisible } = useTabBar();
+  const { isDark } = useTheme();
   const pathname = usePathname();
 
-  // Hide tab bar on certain screens using pathname instead of router.addListener
+  // Show the tab bar only on the five main screens
   useEffect(() => {
-    // Add screens that shouldn't show the tab bar
-    const noTabBarScreens = [
-      "/diet/food-details",
-      "/diet/meal-details",
-      "/diet/food-search",
+    // Define the main screens that should show the tab bar
+    const mainScreens = [
+      "/dashboard/index",
+      "/workout/index",
+      "/diet/index",
+      "/cyborg/index",
+      "/community/index",
+      // Include tracking main screen
+      "/tracking/weight-tracking",
+      "/tracking/body-measurements",
     ];
 
-    // Check if current path contains any of the no-tab-bar screens
-    const shouldHideTabBar = noTabBarScreens.some((screen) =>
-      pathname.includes(screen)
+    // Check if the current pathname exactly matches one of the main screens
+    // This is more strict than the previous logic that used .includes()
+    const isMainScreen = mainScreens.some(
+      (screen) =>
+        pathname === screen ||
+        // Add some flexibility for screens without the /index part
+        pathname === screen.replace("/index", "")
     );
 
-    setIsVisible(!shouldHideTabBar);
+    // Set tab bar visibility based on whether it's a main screen
+    setIsVisible(isMainScreen);
   }, [pathname, setIsVisible]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View
+      style={{ flex: 1 }}
+      className={isDark ? "bg-dark-900" : "bg-light-100"}
+    >
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: "#111827", // dark-800
+            backgroundColor: isDark ? "#111827" : "#f9fafb",
             borderTopWidth: 0,
             elevation: 0,
             height: 60 + insets.bottom,
             paddingBottom: insets.bottom,
           },
           tabBarActiveTintColor: "#10b981", // primary
-          tabBarInactiveTintColor: "gray",
+          tabBarInactiveTintColor: isDark ? "gray" : "#6B7280",
         }}
         tabBar={(props) => <CustomTabBar {...props} />}
       >
@@ -284,7 +301,11 @@ export default function MainLayout() {
                   padding: 10,
                 })}
               >
-                <Ionicons name="menu" size={24} color="white" />
+                <Ionicons
+                  name="menu"
+                  size={24}
+                  color={isDark ? "white" : "#121212"}
+                />
               </Pressable>
             ),
           }}
@@ -304,7 +325,11 @@ export default function MainLayout() {
                   padding: 10,
                 })}
               >
-                <Ionicons name="menu" size={24} color="white" />
+                <Ionicons
+                  name="menu"
+                  size={24}
+                  color={isDark ? "white" : "#121212"}
+                />
               </Pressable>
             ),
           }}
@@ -324,7 +349,11 @@ export default function MainLayout() {
                   padding: 10,
                 })}
               >
-                <Ionicons name="menu" size={24} color="white" />
+                <Ionicons
+                  name="menu"
+                  size={24}
+                  color={isDark ? "white" : "#121212"}
+                />
               </Pressable>
             ),
           }}
@@ -344,7 +373,11 @@ export default function MainLayout() {
                   padding: 10,
                 })}
               >
-                <Ionicons name="menu" size={24} color="white" />
+                <Ionicons
+                  name="menu"
+                  size={24}
+                  color={isDark ? "white" : "#121212"}
+                />
               </Pressable>
             ),
           }}
@@ -364,7 +397,11 @@ export default function MainLayout() {
                   padding: 10,
                 })}
               >
-                <Ionicons name="menu" size={24} color="white" />
+                <Ionicons
+                  name="menu"
+                  size={24}
+                  color={isDark ? "white" : "#121212"}
+                />
               </Pressable>
             ),
           }}

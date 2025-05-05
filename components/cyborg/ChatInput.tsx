@@ -8,6 +8,7 @@ interface ChatInputProps {
   setQuestion: (text: string) => void;
   onSend: () => void;
   onVideoUpload: () => void;
+  isDark?: boolean;
 }
 
 const ChatInput = ({
@@ -15,25 +16,38 @@ const ChatInput = ({
   setQuestion,
   onSend,
   onVideoUpload,
+  isDark = true,
 }: ChatInputProps) => {
   const insets = useSafeAreaInsets();
 
   return (
     <View
-      className="flex-row items-center px-4 py-2 bg-dark-800 border-t border-dark-700"
+      className={
+        isDark
+          ? "flex-row items-center px-4 py-2 bg-dark-800 border-t border-dark-700"
+          : "flex-row items-center px-4 py-2 bg-white border-t border-light-300"
+      }
       style={{ paddingBottom: insets.bottom > 0 ? insets.bottom : 16 }}
     >
       <TouchableOpacity
         className="w-10 h-10 items-center justify-center"
         onPress={onVideoUpload}
       >
-        <Ionicons name="videocam-outline" size={24} color="#A0A0A0" />
+        <Ionicons
+          name="videocam-outline"
+          size={24}
+          color={isDark ? "#A0A0A0" : "#777777"}
+        />
       </TouchableOpacity>
 
       <TextInput
-        className="flex-1 bg-dark-700 rounded-full px-4 py-2 mx-2 text-white"
+        className={
+          isDark
+            ? "flex-1 bg-dark-700 rounded-full px-4 py-2 mx-2 text-white"
+            : "flex-1 bg-light-200 rounded-full px-4 py-2 mx-2 text-dark-900"
+        }
         placeholder="Ask your Cyborg AI trainer..."
-        placeholderTextColor="#A0A0A0"
+        placeholderTextColor={isDark ? "#A0A0A0" : "#888888"}
         value={question}
         onChangeText={setQuestion}
         multiline={false}
@@ -43,7 +57,11 @@ const ChatInput = ({
 
       <TouchableOpacity
         className={`w-10 h-10 rounded-full items-center justify-center ${
-          question.trim() ? "bg-primary" : "bg-dark-700"
+          question.trim()
+            ? "bg-primary"
+            : isDark
+            ? "bg-dark-700"
+            : "bg-light-200"
         }`}
         onPress={onSend}
         disabled={!question.trim()}
@@ -51,7 +69,7 @@ const ChatInput = ({
         <Ionicons
           name="arrow-up"
           size={20}
-          color={question.trim() ? "#121212" : "#A0A0A0"}
+          color={question.trim() ? "#121212" : isDark ? "#A0A0A0" : "#888888"}
         />
       </TouchableOpacity>
     </View>

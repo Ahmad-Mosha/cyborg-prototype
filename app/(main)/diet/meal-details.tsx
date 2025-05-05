@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MealDetailsScreen() {
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
   const params = useLocalSearchParams();
 
   // Extract and convert params to the appropriate types
@@ -54,22 +56,46 @@ export default function MealDetailsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       {/* Header */}
       <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row justify-between items-center">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+            className={
+              isDark
+                ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+                : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
+            }
           >
-            <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+            <Ionicons
+              name="arrow-back"
+              size={20}
+              color={isDark ? "#FFFFFF" : "#121212"}
+            />
           </TouchableOpacity>
-          <Text className="text-white text-lg font-bold">{mealTitle}</Text>
+          <Text
+            className={
+              isDark
+                ? "text-white text-lg font-bold"
+                : "text-dark-900 text-lg font-bold"
+            }
+          >
+            {mealTitle}
+          </Text>
           <TouchableOpacity
-            className="bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+            className={
+              isDark
+                ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+                : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
+            }
             onPress={() => {}}
           >
-            <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={20}
+              color={isDark ? "#FFFFFF" : "#121212"}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -85,7 +111,13 @@ export default function MealDetailsScreen() {
           entering={FadeIn.delay(100).duration(400)}
           className="px-6 mb-6"
         >
-          <View className="bg-dark-800 rounded-3xl border border-dark-700 p-5">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-3xl border border-dark-700 p-5"
+                : "bg-white rounded-3xl border border-light-300 p-5 shadow"
+            }
+          >
             <View className="flex-row items-center mb-4">
               <View
                 className="w-12 h-12 rounded-full items-center justify-center mr-4"
@@ -98,31 +130,99 @@ export default function MealDetailsScreen() {
                 />
               </View>
               <View>
-                <Text className="text-gray-400">{mealTime}</Text>
-                <Text className="text-white text-xl font-bold">
+                <Text className={isDark ? "text-gray-400" : "text-gray-500"}>
+                  {mealTime}
+                </Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-xl font-bold"
+                      : "text-dark-900 text-xl font-bold"
+                  }
+                >
                   {mealTitle}
                 </Text>
               </View>
             </View>
 
-            <View className="flex-row justify-around bg-dark-700 rounded-2xl p-4">
+            <View
+              className={
+                isDark
+                  ? "flex-row justify-around bg-dark-700 rounded-2xl p-4"
+                  : "flex-row justify-around bg-light-200 rounded-2xl p-4"
+              }
+            >
               <View className="items-center">
-                <Text className="text-gray-400 text-sm">Calories</Text>
-                <Text className="text-white text-lg font-bold">
+                <Text
+                  className={
+                    isDark ? "text-gray-400 text-sm" : "text-gray-500 text-sm"
+                  }
+                >
+                  Calories
+                </Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-lg font-bold"
+                      : "text-dark-900 text-lg font-bold"
+                  }
+                >
                   {mealCalories}
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-gray-400 text-sm">Protein</Text>
-                <Text className="text-white text-lg font-bold">35g</Text>
+                <Text
+                  className={
+                    isDark ? "text-gray-400 text-sm" : "text-gray-500 text-sm"
+                  }
+                >
+                  Protein
+                </Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-lg font-bold"
+                      : "text-dark-900 text-lg font-bold"
+                  }
+                >
+                  35g
+                </Text>
               </View>
               <View className="items-center">
-                <Text className="text-gray-400 text-sm">Carbs</Text>
-                <Text className="text-white text-lg font-bold">40g</Text>
+                <Text
+                  className={
+                    isDark ? "text-gray-400 text-sm" : "text-gray-500 text-sm"
+                  }
+                >
+                  Carbs
+                </Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-lg font-bold"
+                      : "text-dark-900 text-lg font-bold"
+                  }
+                >
+                  40g
+                </Text>
               </View>
               <View className="items-center">
-                <Text className="text-gray-400 text-sm">Fats</Text>
-                <Text className="text-white text-lg font-bold">15g</Text>
+                <Text
+                  className={
+                    isDark ? "text-gray-400 text-sm" : "text-gray-500 text-sm"
+                  }
+                >
+                  Fats
+                </Text>
+                <Text
+                  className={
+                    isDark
+                      ? "text-white text-lg font-bold"
+                      : "text-dark-900 text-lg font-bold"
+                  }
+                >
+                  15g
+                </Text>
               </View>
             </View>
           </View>
@@ -131,22 +231,46 @@ export default function MealDetailsScreen() {
         {/* Food Items */}
         <View className="px-6">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white text-lg font-bold">Food Items</Text>
+            <Text
+              className={
+                isDark
+                  ? "text-white text-lg font-bold"
+                  : "text-dark-900 text-lg font-bold"
+              }
+            >
+              Food Items
+            </Text>
           </View>
 
           {foodItems.map((item, index) => (
             <Animated.View
               key={index}
               entering={FadeInDown.delay(150 + index * 100).duration(400)}
-              className="bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+              className={
+                isDark
+                  ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+                  : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
+              }
             >
               <View className="flex-row justify-between items-center">
                 <View className="flex-1">
-                  <Text className="text-white font-bold">{item.name}</Text>
-                  <Text className="text-gray-400">{item.portion}</Text>
+                  <Text
+                    className={
+                      isDark
+                        ? "text-white font-bold"
+                        : "text-dark-900 font-bold"
+                    }
+                  >
+                    {item.name}
+                  </Text>
+                  <Text className={isDark ? "text-gray-400" : "text-gray-500"}>
+                    {item.portion}
+                  </Text>
                 </View>
                 <View className="items-end">
-                  <Text className="text-white">{item.calories} kcal</Text>
+                  <Text className={isDark ? "text-white" : "text-dark-900"}>
+                    {item.calories} kcal
+                  </Text>
                   <View className="flex-row">
                     <Text className="text-primary mr-1">
                       P: {item.protein}g
@@ -158,7 +282,11 @@ export default function MealDetailsScreen() {
                   </View>
                 </View>
                 <TouchableOpacity className="ml-3">
-                  <Ionicons name="create-outline" size={20} color="#777777" />
+                  <Ionicons
+                    name="create-outline"
+                    size={20}
+                    color={isDark ? "#777777" : "#999999"}
+                  />
                 </TouchableOpacity>
               </View>
             </Animated.View>

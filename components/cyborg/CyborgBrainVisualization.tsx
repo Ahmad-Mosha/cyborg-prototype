@@ -9,7 +9,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const CyborgBrainVisualization = () => {
+interface CyborgBrainVisualizationProps {
+  isDark?: boolean;
+}
+
+const CyborgBrainVisualization = ({
+  isDark = true,
+}: CyborgBrainVisualizationProps) => {
   // Animation values
   const scale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.5);
@@ -43,7 +49,13 @@ const CyborgBrainVisualization = () => {
   });
 
   return (
-    <View className="w-full items-center justify-center py-2">
+    <View
+      className={
+        isDark
+          ? "w-full items-center justify-center py-2"
+          : "w-full items-center justify-center py-2 bg-light-100"
+      }
+    >
       <View className="relative w-20 h-20 items-center justify-center">
         <Animated.View
           style={pulseStyle}

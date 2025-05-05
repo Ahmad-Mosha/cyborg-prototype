@@ -1,30 +1,36 @@
 export const COLORS = {
-  primary: '#BBFD00', // Neon Green
-  primaryDark: '#95CA00',
-  primaryLight: '#D7FF4D',
-  
+  primary: "#BBFD00", // Neon Green
+  primaryDark: "#95CA00",
+  primaryLight: "#D7FF4D",
+
   // Background colors
-  darkBg: '#121212',
-  darkCard: '#1E1E1E',
-  darkBorder: '#333333',
-  
+  darkBg: "#121212",
+  darkCard: "#1E1E1E",
+  darkBorder: "#333333",
+
+  // Light mode backgrounds
+  lightBg: "#FFFFFF",
+  lightCard: "#FFFFFF",
+  lightBorder: "#E5E7EB",
+
   // Text colors
-  textLight: '#FFFFFF',
-  textDim: '#A0A0A0',
-  textDark: '#121212',
-  
+  textLight: "#FFFFFF",
+  textDim: "#A0A0A0",
+  textDark: "#121212",
+  textGray: "#6B7280",
+
   // Functional colors
-  success: '#4CAF50',
-  warning: '#FF9800',
-  error: '#F44336',
-  info: '#2196F3',
+  success: "#4CAF50",
+  warning: "#FF9800",
+  error: "#F44336",
+  info: "#2196F3",
 };
 
 export const FONTS = {
-  regular: 'Inter-Regular',
-  medium: 'Inter-Medium',
-  semiBold: 'Inter-SemiBold',
-  bold: 'Inter-Bold',
+  regular: "Inter-Regular",
+  medium: "Inter-Medium",
+  semiBold: "Inter-SemiBold",
+  bold: "Inter-Bold",
 };
 
 export const SIZES = {
@@ -35,20 +41,19 @@ export const SIZES = {
   large: 24,
   xlarge: 32,
   xxlarge: 40,
-  
+
   // Font sizes
   heading1: 32,
   heading2: 24,
   heading3: 20,
   body: 16,
   caption: 14,
-  small: 12,
-  
+
   // Radius
   radiusSmall: 8,
   radiusMedium: 12,
   radiusLarge: 16,
-  
+
   // Spacing
   spacing: 8,
 };
@@ -83,5 +88,17 @@ export const SHADOWS = {
     shadowOpacity: 0.44,
     shadowRadius: 10.32,
     elevation: 8,
+  },
+
+  // Light mode specific shadows
+  lightSmall: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
 };

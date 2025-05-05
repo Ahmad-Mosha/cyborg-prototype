@@ -32,3 +32,46 @@ export interface WorkoutCardProps {
 export interface PlanCardProps {
   plan: WorkoutPlan;
 }
+
+export interface Exercise {
+  id: string;
+  name: string;
+  category: string;
+  equipment?: string;
+  icon?: string;
+  count?: number; // For showing exercise count in templates
+}
+
+export interface ExerciseSet {
+  id: string;
+  weight: number;
+  reps: number;
+  completed: boolean;
+}
+
+export interface WorkoutExercise {
+  exercise: Exercise;
+  sets: ExerciseSet[];
+  isSuperSet: boolean;
+  superSetGroup?: string;
+}
+
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  exercises: Exercise[];
+  lastUsed?: Date;
+  description?: string;
+}
+
+export interface ActiveWorkout {
+  name: string;
+  exercises: WorkoutExercise[];
+  startTime: Date | null;
+  isActive: boolean;
+}
+
+export interface NewTemplate {
+  name: string;
+  description: string;
+}

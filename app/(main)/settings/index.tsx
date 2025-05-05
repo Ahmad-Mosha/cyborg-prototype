@@ -1,21 +1,31 @@
-import React, { useState } from "react";
+import React, { useCallback } from "react";
 import { View, Text, TouchableOpacity, Switch, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { isDark, toggleTheme } = useTheme();
 
   // State for toggle switches
-  const [darkMode, setDarkMode] = useState(true);
-  const [notifications, setNotifications] = useState(true);
-  const [workoutReminders, setWorkoutReminders] = useState(true);
-  const [mealReminders, setMealReminders] = useState(false);
-  const [dataSync, setDataSync] = useState(true);
+  const [notifications, setNotifications] = React.useState(true);
+  const [workoutReminders, setWorkoutReminders] = React.useState(true);
+  const [mealReminders, setMealReminders] = React.useState(false);
+  const [dataSync, setDataSync] = React.useState(true);
+
+  // Wrap the theme toggle in a safe handler to prevent navigation context issues
+  const handleThemeToggle = useCallback(() => {
+    // Using setTimeout to ensure the toggle happens after current JS execution
+    // This helps prevent navigation context issues
+    setTimeout(() => {
+      toggleTheme();
+    }, 0);
+  }, [toggleTheme]);
 
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top,
@@ -26,24 +36,48 @@ export default function SettingsScreen() {
         {/* Header */}
         <View className="flex-row items-center px-6 py-4">
           <TouchableOpacity className="pr-4" onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={isDark ? "white" : "#121212"}
+            />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Settings</Text>
+          <Text
+            className={
+              isDark
+                ? "text-white text-xl font-bold"
+                : "text-dark-900 text-xl font-bold"
+            }
+          >
+            Settings
+          </Text>
         </View>
 
         {/* App Preferences Section */}
         <View className="mt-6 px-4">
-          <Text className="text-gray-400 text-sm uppercase font-medium mb-2 px-2">
+          <Text
+            className={
+              isDark
+                ? "text-gray-400 text-sm uppercase font-medium mb-2 px-2"
+                : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
+            }
+          >
             App Preferences
           </Text>
 
-          <View className="bg-dark-800 rounded-xl overflow-hidden">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-xl overflow-hidden"
+                : "bg-white rounded-xl overflow-hidden shadow"
+            }
+          >
             <ToggleSetting
               title="Dark Mode"
               description="Enable dark theme"
               icon="moon-outline"
-              isEnabled={darkMode}
-              onToggle={() => setDarkMode(!darkMode)}
+              isEnabled={isDark}
+              onToggle={handleThemeToggle}
             />
 
             <ToggleSetting
@@ -58,11 +92,23 @@ export default function SettingsScreen() {
 
         {/* Reminders Section */}
         <View className="mt-6 px-4">
-          <Text className="text-gray-400 text-sm uppercase font-medium mb-2 px-2">
+          <Text
+            className={
+              isDark
+                ? "text-gray-400 text-sm uppercase font-medium mb-2 px-2"
+                : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
+            }
+          >
             Reminders
           </Text>
 
-          <View className="bg-dark-800 rounded-xl overflow-hidden">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-xl overflow-hidden"
+                : "bg-white rounded-xl overflow-hidden shadow"
+            }
+          >
             <ToggleSetting
               title="Workout Reminders"
               description="Get notified about scheduled workouts"
@@ -84,11 +130,23 @@ export default function SettingsScreen() {
 
         {/* Data & Privacy Section */}
         <View className="mt-6 px-4">
-          <Text className="text-gray-400 text-sm uppercase font-medium mb-2 px-2">
+          <Text
+            className={
+              isDark
+                ? "text-gray-400 text-sm uppercase font-medium mb-2 px-2"
+                : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
+            }
+          >
             Data & Privacy
           </Text>
 
-          <View className="bg-dark-800 rounded-xl overflow-hidden">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-xl overflow-hidden"
+                : "bg-white rounded-xl overflow-hidden shadow"
+            }
+          >
             <ToggleSetting
               title="Sync Data"
               description="Sync your data across devices"
@@ -116,11 +174,23 @@ export default function SettingsScreen() {
 
         {/* Account Section */}
         <View className="mt-6 px-4">
-          <Text className="text-gray-400 text-sm uppercase font-medium mb-2 px-2">
+          <Text
+            className={
+              isDark
+                ? "text-gray-400 text-sm uppercase font-medium mb-2 px-2"
+                : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
+            }
+          >
             Account
           </Text>
 
-          <View className="bg-dark-800 rounded-xl overflow-hidden">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-xl overflow-hidden"
+                : "bg-white rounded-xl overflow-hidden shadow"
+            }
+          >
             <LinkSetting
               title="Change Password"
               description="Update your account password"
@@ -140,11 +210,23 @@ export default function SettingsScreen() {
 
         {/* About Section */}
         <View className="mt-6 px-4">
-          <Text className="text-gray-400 text-sm uppercase font-medium mb-2 px-2">
+          <Text
+            className={
+              isDark
+                ? "text-gray-400 text-sm uppercase font-medium mb-2 px-2"
+                : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
+            }
+          >
             About
           </Text>
 
-          <View className="bg-dark-800 rounded-xl overflow-hidden">
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-xl overflow-hidden"
+                : "bg-white rounded-xl overflow-hidden shadow"
+            }
+          >
             <LinkSetting
               title="About CyborgFit"
               description="Learn more about the app"
@@ -171,8 +253,22 @@ export default function SettingsScreen() {
 
         {/* Version info */}
         <View className="mt-8 items-center">
-          <Text className="text-gray-500 text-sm">Version 1.0.0</Text>
-          <Text className="text-gray-600 text-xs mt-1">CyborgFit © 2025</Text>
+          <Text
+            className={
+              isDark ? "text-gray-500 text-sm" : "text-gray-600 text-sm"
+            }
+          >
+            Version 1.0.0
+          </Text>
+          <Text
+            className={
+              isDark
+                ? "text-gray-600 text-xs mt-1"
+                : "text-gray-500 text-xs mt-1"
+            }
+          >
+            CyborgFit © 2025
+          </Text>
         </View>
       </ScrollView>
     </View>
@@ -196,23 +292,42 @@ const ToggleSetting: React.FC<ToggleSettingProps> = ({
   onToggle,
   isLast = false,
 }) => {
+  const { isDark } = useTheme();
+
   return (
     <View
       className={`flex-row items-center px-4 py-4 ${
-        !isLast ? "border-b border-dark-700" : ""
+        !isLast
+          ? isDark
+            ? "border-b border-dark-700"
+            : "border-b border-gray-200"
+          : ""
       }`}
     >
       <View className="bg-primary/10 p-2 rounded-full mr-4">
         <Ionicons name={icon as any} size={20} color="#10b981" />
       </View>
       <View className="flex-1">
-        <Text className="text-white font-medium">{title}</Text>
-        <Text className="text-gray-400 text-sm">{description}</Text>
+        <Text
+          className={
+            isDark ? "text-white font-medium" : "text-dark-900 font-medium"
+          }
+        >
+          {title}
+        </Text>
+        <Text
+          className={isDark ? "text-gray-400 text-sm" : "text-gray-600 text-sm"}
+        >
+          {description}
+        </Text>
       </View>
       <Switch
-        trackColor={{ false: "#3e3e3e", true: "#10b98150" }}
-        thumbColor={isEnabled ? "#10b981" : "#f4f3f4"}
-        ios_backgroundColor="#3e3e3e"
+        trackColor={{
+          false: isDark ? "#3e3e3e" : "#D1D5DB",
+          true: "#10b98150",
+        }}
+        thumbColor={isEnabled ? "#10b981" : isDark ? "#f4f3f4" : "#ffffff"}
+        ios_backgroundColor={isDark ? "#3e3e3e" : "#D1D5DB"}
         onValueChange={onToggle}
         value={isEnabled}
       />
@@ -235,10 +350,16 @@ const LinkSetting: React.FC<LinkSettingProps> = ({
   onPress,
   isLast = false,
 }) => {
+  const { isDark } = useTheme();
+
   return (
     <TouchableOpacity
       className={`flex-row items-center px-4 py-4 ${
-        !isLast ? "border-b border-dark-700" : ""
+        !isLast
+          ? isDark
+            ? "border-b border-dark-700"
+            : "border-b border-gray-200"
+          : ""
       }`}
       onPress={onPress}
     >
@@ -246,10 +367,24 @@ const LinkSetting: React.FC<LinkSettingProps> = ({
         <Ionicons name={icon as any} size={20} color="#10b981" />
       </View>
       <View className="flex-1">
-        <Text className="text-white font-medium">{title}</Text>
-        <Text className="text-gray-400 text-sm">{description}</Text>
+        <Text
+          className={
+            isDark ? "text-white font-medium" : "text-dark-900 font-medium"
+          }
+        >
+          {title}
+        </Text>
+        <Text
+          className={isDark ? "text-gray-400 text-sm" : "text-gray-600 text-sm"}
+        >
+          {description}
+        </Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color="gray" />
+      <Ionicons
+        name="chevron-forward"
+        size={18}
+        color={isDark ? "gray" : "#9CA3AF"}
+      />
     </TouchableOpacity>
   );
 };

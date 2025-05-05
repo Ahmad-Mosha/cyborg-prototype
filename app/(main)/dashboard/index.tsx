@@ -9,6 +9,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Import our custom components
 import { TodayOverview } from "../../../components/dashboard/TodayOverview";
@@ -21,6 +22,7 @@ import SidebarMenu from "../../../components/ui/SidebarMenu";
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isDark } = useTheme();
 
   // Sample data for widgets
   const workouts = [
@@ -66,7 +68,7 @@ export default function DashboardScreen() {
   ];
 
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       <SidebarMenu isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <ScrollView
@@ -79,17 +81,33 @@ export default function DashboardScreen() {
         {/* Header */}
         <View className="flex-row justify-between items-center px-6 mb-8">
           <View>
-            <Text className="text-white text-2xl font-bold">
+            <Text
+              className={
+                isDark
+                  ? "text-white text-2xl font-bold"
+                  : "text-dark-900 text-2xl font-bold"
+              }
+            >
               Hello, <Text className="text-primary">Athlete</Text>
             </Text>
-            <Text className="text-gray-400">Let's crush today's workout!</Text>
+            <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
+              Let's crush today's workout!
+            </Text>
           </View>
 
           <TouchableOpacity
-            className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center"
+            className={
+              isDark
+                ? "w-10 h-10 rounded-full bg-dark-800 items-center justify-center"
+                : "w-10 h-10 rounded-full bg-light-200 items-center justify-center"
+            }
             onPress={() => setSidebarOpen(true)}
           >
-            <Ionicons name="menu" size={22} color="white" />
+            <Ionicons
+              name="menu"
+              size={22}
+              color={isDark ? "white" : "#121212"}
+            />
           </TouchableOpacity>
         </View>
 
@@ -98,10 +116,11 @@ export default function DashboardScreen() {
           workouts={workouts}
           caloriesData={caloriesData}
           waterData={waterData}
+          isDark={isDark}
         />
 
         {/* Quick Access Section */}
-        <QuickAccess />
+        <QuickAccess isDark={isDark} />
 
         {/* Weight Tracking Graph */}
         <WeightTracking
@@ -109,6 +128,7 @@ export default function DashboardScreen() {
           currentWeight={79.5}
           weightChange={-2.8}
           period="April"
+          isDark={isDark}
         />
 
         {/* Body Measurements Graph */}
@@ -117,6 +137,7 @@ export default function DashboardScreen() {
           currentMeasurement={88.7}
           measurementChange={-1.8}
           period="April"
+          isDark={isDark}
         />
       </ScrollView>
     </View>

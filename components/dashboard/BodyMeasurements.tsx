@@ -12,6 +12,7 @@ interface BodyMeasurementsProps {
   currentMeasurement: number;
   measurementChange: number;
   period: string;
+  isDark?: boolean;
 }
 
 export const BodyMeasurements = ({
@@ -19,6 +20,7 @@ export const BodyMeasurements = ({
   currentMeasurement,
   measurementChange,
   period,
+  isDark = true,
 }: BodyMeasurementsProps) => {
   const [selectedBodyPart, setSelectedBodyPart] = useState("Chest");
   const bodyParts = ["Chest", "Arms", "Waist", "Hips"];
@@ -29,11 +31,23 @@ export const BodyMeasurements = ({
       className="px-6"
     >
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-white text-lg font-bold">Body Measurements</Text>
+        <Text
+          className={
+            isDark
+              ? "text-white text-lg font-bold"
+              : "text-dark-900 text-lg font-bold"
+          }
+        >
+          Body Measurements
+        </Text>
       </View>
 
       <TouchableOpacity
-        className="bg-dark-800 rounded-3xl p-5 border border-dark-700"
+        className={
+          isDark
+            ? "bg-dark-800 rounded-3xl p-5 border border-dark-700"
+            : "bg-white rounded-3xl p-5 border border-light-300 shadow"
+        }
         activeOpacity={0.8}
         onPress={() => router.push("/tracking/body-measurements")}
       >
@@ -43,7 +57,11 @@ export const BodyMeasurements = ({
               <Ionicons name="body-outline" size={20} color="#2196F3" />
             </View>
             <View>
-              <Text className="text-white font-bold">
+              <Text
+                className={
+                  isDark ? "text-white font-bold" : "text-dark-900 font-bold"
+                }
+              >
                 {selectedBodyPart}: {currentMeasurement} cm
               </Text>
               <Text className="text-[#2196F3]">
@@ -65,13 +83,25 @@ export const BodyMeasurements = ({
             <TouchableOpacity
               key={index}
               className={`${
-                selectedBodyPart === part ? "bg-dark-700" : "bg-dark-900"
+                selectedBodyPart === part
+                  ? isDark
+                    ? "bg-dark-700"
+                    : "bg-light-200"
+                  : isDark
+                  ? "bg-dark-900"
+                  : "bg-light-100"
               } px-3 py-1 rounded-full mr-2`}
               onPress={() => setSelectedBodyPart(part)}
             >
               <Text
                 className={`${
-                  selectedBodyPart === part ? "text-white" : "text-gray-400"
+                  selectedBodyPart === part
+                    ? isDark
+                      ? "text-white"
+                      : "text-dark-900"
+                    : isDark
+                    ? "text-gray-400"
+                    : "text-gray-500"
                 } text-xs`}
               >
                 {part}
@@ -87,17 +117,28 @@ export const BodyMeasurements = ({
             height={150}
             strokeColor="#2196F3"
             fillColor="#2196F320"
+            isDark={isDark}
           />
 
           {/* X-axis labels */}
           <View className="flex-row justify-between mt-2">
             {measurementsData.map((point, i) =>
               i % 2 === 0 ? (
-                <Text key={i} className="text-gray-400 text-xs">
+                <Text
+                  key={i}
+                  className={
+                    isDark ? "text-gray-400 text-xs" : "text-gray-600 text-xs"
+                  }
+                >
                   {point.x}
                 </Text>
               ) : i === measurementsData.length - 1 ? (
-                <Text key={i} className="text-gray-400 text-xs">
+                <Text
+                  key={i}
+                  className={
+                    isDark ? "text-gray-400 text-xs" : "text-gray-600 text-xs"
+                  }
+                >
                   {point.x}
                 </Text>
               ) : null

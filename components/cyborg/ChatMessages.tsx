@@ -6,9 +6,14 @@ import MessageBubble from "./MessageBubble";
 interface ChatMessagesProps {
   messages: MessageType[];
   isProcessing: boolean;
+  isDark?: boolean;
 }
 
-const ChatMessages = ({ messages, isProcessing }: ChatMessagesProps) => {
+const ChatMessages = ({
+  messages,
+  isProcessing,
+  isDark = true,
+}: ChatMessagesProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -27,16 +32,23 @@ const ChatMessages = ({ messages, isProcessing }: ChatMessagesProps) => {
         key={`message-${index}-${message.time}`}
         message={message}
         index={index}
+        isDark={isDark}
       />
     ));
-  }, [messages]);
+  }, [messages, isDark]);
 
   // Memoize the typing indicator to prevent re-renders
   const TypingIndicator = React.useMemo(() => {
     if (!isProcessing) return null;
 
     return (
-      <View className="self-start bg-dark-800 rounded-2xl rounded-tl-none p-4 mb-4">
+      <View
+        className={
+          isDark
+            ? "self-start bg-dark-800 rounded-2xl rounded-tl-none p-4 mb-4"
+            : "self-start bg-light-200 rounded-2xl rounded-tl-none p-4 mb-4 shadow"
+        }
+      >
         <View className="flex-row items-center">
           <View className="w-2 h-2 bg-primary rounded-full mx-1 animate-pulse" />
           <View
@@ -50,7 +62,7 @@ const ChatMessages = ({ messages, isProcessing }: ChatMessagesProps) => {
         </View>
       </View>
     );
-  }, [isProcessing]);
+  }, [isProcessing, isDark]);
 
   return (
     <ScrollView

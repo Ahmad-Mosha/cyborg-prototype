@@ -1,493 +1,524 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { router } from "expo-router";
+import { useTabBar } from "@/contexts/TabBarContext";
+import { showAlert, confirmAlert, destructiveAlert } from "@/utils/AlertUtil";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-  FadeInDown,
-  FadeIn,
-  SlideInRight,
-} from "react-native-reanimated";
-
-import {
-  Category,
-  Workout,
-  WorkoutPlan,
+  ActiveWorkout,
   Exercise,
-  WorkoutCardProps,
-  PlanCardProps,
-  ExerciseItemProps,
+  NewTemplate,
+  WorkoutExercise,
+  WorkoutTemplate,
 } from "@/types/workout";
+import { WorkoutHomeScreen, ActiveWorkoutScreen } from "@/components/workout";
 
-const { width } = Dimensions.get("window");
+const WorkoutScreen = () => {
+  const { setIsVisible } = useTabBar();
 
-export default function WorkoutScreen() {
-  const insets = useSafeAreaInsets();
-  const [selectedCategory, setSelectedCategory] = useState("all");
-
-  // Workout categories
-  const categories: Category[] = [
-    { id: "all", name: "All" },
-    { id: "strength", name: "Strength" },
-    { id: "cardio", name: "Cardio" },
-    { id: "hiit", name: "HIIT" },
-    { id: "yoga", name: "Yoga" },
-    { id: "recovery", name: "Recovery" },
-  ];
-
-  // Featured workout
-  const featuredWorkout: Workout = {
-    id: "featured",
-    title: "Full Body Power",
-    level: "Advanced",
-    duration: "45 min",
-    calories: 420,
-    category: "strength",
-    coach: "Alex Mercer",
-    image: "https://via.placeholder.com/600/121212/BBFD00?text=Full+Body+Power",
-  };
-
-  // Workout plans
-  const workoutPlans = [
+  // States
+  const [templates, setTemplates] = useState<WorkoutTemplate[]>([
     {
       id: "1",
-      title: "30-Day Strength",
-      description: "Build strength and muscle with this comprehensive plan",
-      image:
-        "https://via.placeholder.com/600/121212/BBFD00?text=30+Day+Strength",
-      duration: "30 days",
-      workouts: 24,
-      category: "strength",
+      name: "Shoulders",
+      exercises: [
+        {
+          id: "101",
+          name: "Shoulder Press (Plate Loaded)",
+          category: "Shoulders",
+        },
+        { id: "102", name: "Lateral Raise (Cable)", category: "Shoulders" },
+        { id: "103", name: "Arnold Press (Dumbbell)", category: "Shoulders" },
+      ],
+      lastUsed: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
     },
     {
       id: "2",
-      title: "HIIT Fat Burner",
-      description: "High intensity interval training to maximize calorie burn",
-      image:
-        "https://via.placeholder.com/600/121212/BBFD00?text=HIIT+Fat+Burner",
-      duration: "14 days",
-      workouts: 12,
-      category: "hiit",
+      name: "Arms",
+      exercises: [
+        { id: "201", name: "Preacher Curl (Machine)", category: "Arms" },
+        { id: "202", name: "Triceps Pushdown (Cable)", category: "Arms" },
+      ],
+      lastUsed: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
     },
     {
       id: "3",
-      title: "Yoga Flow",
-      description: "Improve flexibility and mindfulness",
-      image: "https://via.placeholder.com/600/121212/BBFD00?text=Yoga+Flow",
-      duration: "21 days",
-      workouts: 18,
-      category: "yoga",
+      name: "Chest-back",
+      exercises: [
+        { id: "301", name: "Incline Chest Press (Machine)", category: "Chest" },
+        { id: "302", name: "Lat Pulldown - Wide Grip", category: "Back" },
+      ],
+      lastUsed: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
     },
-  ];
+  ]);
 
-  // Today's recommended workouts
-  const recommendedWorkouts = [
+  const [exampleTemplates, setExampleTemplates] = useState<WorkoutTemplate[]>([
     {
-      id: "1",
-      title: "Upper Body Focus",
-      level: "Intermediate",
-      duration: "35 min",
-      calories: 350,
-      category: "strength",
-      image: "https://via.placeholder.com/600/121212/BBFD00?text=Upper+Body",
+      id: "ex1",
+      name: "Strong 5×5 - Workout B",
+      exercises: [
+        { id: "ex101", name: "Squat (Barbell)", category: "Legs", count: 5 },
+        {
+          id: "ex102",
+          name: "Bench Press (Barbell)",
+          category: "Chest",
+          count: 5,
+        },
+        { id: "ex103", name: "Barbell Row", category: "Back", count: 5 },
+      ],
     },
     {
-      id: "2",
-      title: "HIIT Cardio Blast",
-      level: "Advanced",
-      duration: "25 min",
-      calories: 300,
-      category: "hiit",
-      image: "https://via.placeholder.com/600/121212/BBFD00?text=HIIT+Cardio",
+      id: "ex2",
+      name: "Legs",
+      exercises: [
+        { id: "ex201", name: "Squat (Barbell)", category: "Legs" },
+        { id: "ex202", name: "Leg Extension (Machine)", category: "Legs" },
+        { id: "ex203", name: "Romanian Deadlift", category: "Legs" },
+      ],
     },
-    {
-      id: "3",
-      title: "Core Crusher",
-      level: "Beginner",
-      duration: "20 min",
-      calories: 180,
-      category: "strength",
-      image: "https://via.placeholder.com/600/121212/BBFD00?text=Core+Crusher",
-    },
-    {
-      id: "4",
-      title: "Recovery Stretch",
-      level: "All Levels",
-      duration: "15 min",
-      calories: 90,
-      category: "recovery",
-      image: "https://via.placeholder.com/600/121212/BBFD00?text=Recovery",
-    },
-  ];
+  ]);
 
-  // Filtered workouts based on selected category
-  const filteredWorkouts =
-    selectedCategory === "all"
-      ? recommendedWorkouts
-      : recommendedWorkouts.filter(
-          (workout) => workout.category === selectedCategory
+  const [allExercises, setAllExercises] = useState<Exercise[]>([
+    { id: "1", name: "Arnold Press (Dumbbell)", category: "Shoulders" },
+    { id: "2", name: "Around the World", category: "Chest" },
+    { id: "3", name: "Back Extension", category: "Back" },
+    { id: "4", name: "Back Extension (Machine)", category: "Back" },
+    { id: "5", name: "Back Shoulder", category: "Shoulders" },
+    { id: "6", name: "Ball Slams", category: "Full Body" },
+    { id: "7", name: "Battle Ropes", category: "Cardio" },
+    { id: "8", name: "Bench Dip", category: "Arms" },
+    { id: "9", name: "Bench Press (Barbell)", category: "Chest" },
+    { id: "10", name: "Bench Press (Cable)", category: "Chest" },
+    { id: "11", name: "Bench Press (Dumbbell)", category: "Chest" },
+  ]);
+
+  // Active workout
+  const [activeWorkout, setActiveWorkout] = useState<ActiveWorkout>({
+    name: "Evening Workout",
+    exercises: [],
+    startTime: null,
+    isActive: false,
+  });
+
+  // Modal states
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState("");
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+
+  // New state for create template modal
+  const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
+  const [newTemplate, setNewTemplate] = useState<NewTemplate>({
+    name: "",
+    description: "",
+  });
+  const [selectedTemplateExercises, setSelectedTemplateExercises] = useState<
+    Exercise[]
+  >([]);
+  const [
+    showExerciseSelectionForTemplate,
+    setShowExerciseSelectionForTemplate,
+  ] = useState(false);
+
+  // New state for template options modal
+  const [showTemplateOptionsModal, setShowTemplateOptionsModal] =
+    useState(false);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<WorkoutTemplate | null>(null);
+
+  const [showWorkoutConfirmModal, setShowWorkoutConfirmModal] = useState(false);
+
+  // Filtered exercises based on search
+  const filteredExercises =
+    searchQuery.trim() === ""
+      ? allExercises
+      : allExercises.filter(
+          (exercise) =>
+            exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            exercise.category.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
-  // Workout card component
-  const WorkoutCard = ({ workout }: WorkoutCardProps) => {
-    return (
-      <TouchableOpacity className="mr-4 w-64 rounded-3xl overflow-hidden bg-dark-800 border border-dark-700">
-        <Image
-          source={{ uri: workout.image }}
-          className="w-full h-32"
-          resizeMode="cover"
-        />
+  // Handle starting a new empty workout
+  const startEmptyWorkout = () => {
+    // Hide the bottom tab bar when starting a workout
+    setIsVisible(false);
+    setActiveWorkout({
+      name: "New Workout",
+      exercises: [],
+      startTime: new Date(),
+      isActive: true,
+    });
+  };
 
-        <View className="p-3">
-          <Text className="text-white font-bold text-lg mb-1">
-            {workout.title}
-          </Text>
+  // Handle starting a workout from template
+  const startTemplateWorkout = (template: WorkoutTemplate) => {
+    // Hide the bottom tab bar when starting a workout
+    setIsVisible(false);
 
-          <View className="flex-row justify-between mb-2">
-            <View className="flex-row items-center">
-              <Ionicons name="time-outline" size={16} color="#A0A0A0" />
-              <Text className="text-gray-400 ml-1">{workout.duration}</Text>
-            </View>
+    // Convert template exercises to workout exercises
+    const workoutExercises: WorkoutExercise[] = template.exercises.map(
+      (exercise) => ({
+        exercise,
+        sets: [
+          { id: `set-${Date.now()}-1`, weight: 0, reps: 0, completed: false },
+        ],
+        isSuperSet: false,
+      })
+    );
 
-            <View className="flex-row items-center">
-              <Ionicons name="flame-outline" size={16} color="#A0A0A0" />
-              <Text className="text-gray-400 ml-1">
-                {workout.calories} kcal
-              </Text>
-            </View>
-          </View>
+    setActiveWorkout({
+      name: template.name,
+      exercises: workoutExercises,
+      startTime: new Date(),
+      isActive: true,
+    });
+  };
 
-          <View className="bg-dark-700 self-start px-3 py-1 rounded-full">
-            <Text className="text-white text-xs">{workout.level}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+  // Show confirmation before starting a workout from template
+  const confirmStartWorkout = (template: WorkoutTemplate) => {
+    showAlert(
+      "Start Workout",
+      `Are you ready to start "${template.name}" with ${
+        template.exercises.length
+      } ${template.exercises.length === 1 ? "exercise" : "exercises"}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Start Now",
+          onPress: () => startTemplateWorkout(template),
+        },
+      ],
+      "barbell-outline",
+      "#BBFD00"
     );
   };
 
-  // Plan card component
-  const PlanCard = ({ plan }: PlanCardProps) => {
-    return (
-      <TouchableOpacity className="mr-4 w-64 rounded-3xl overflow-hidden bg-dark-800 border border-dark-700">
-        <Image
-          source={{ uri: plan.image }}
-          className="w-full h-32"
-          resizeMode="cover"
-        />
+  // Add selected exercises to workout
+  const addExercisesToWorkout = () => {
+    if (selectedExercises.length === 0) return;
 
-        <View className="p-3">
-          <Text className="text-white font-bold text-lg mb-1">
-            {plan.title}
-          </Text>
-          <Text className="text-gray-400 text-sm mb-2" numberOfLines={2}>
-            {plan.description}
-          </Text>
+    const newExercises: WorkoutExercise[] = [];
+    const isSuperSet = selectedExercises.length > 1;
+    const superSetGroup = isSuperSet ? `ss-${Date.now()}` : undefined;
 
-          <View className="flex-row justify-between">
-            <View className="flex-row items-center">
-              <Ionicons name="calendar-outline" size={16} color="#A0A0A0" />
-              <Text className="text-gray-400 ml-1">{plan.duration}</Text>
-            </View>
+    selectedExercises.forEach((id) => {
+      const exercise = allExercises.find((e) => e.id === id);
+      if (exercise) {
+        newExercises.push({
+          exercise,
+          sets: [
+            {
+              id: `set-${Date.now()}-${id}`,
+              weight: 0,
+              reps: 0,
+              completed: false,
+            },
+          ],
+          isSuperSet,
+          superSetGroup,
+        });
+      }
+    });
 
-            <View className="flex-row items-center">
-              <Ionicons name="barbell-outline" size={16} color="#A0A0A0" />
-              <Text className="text-gray-400 ml-1">
-                {plan.workouts} workouts
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: [...activeWorkout.exercises, ...newExercises],
+    });
+
+    setSelectedExercises([]);
+    setShowExerciseModal(false);
+  };
+
+  // Save current workout as template
+  const saveAsTemplate = () => {
+    if (!newTemplateName.trim()) {
+      showAlert("Error", "Please enter a template name");
+      return;
+    }
+
+    const templateExercises = activeWorkout.exercises.map((we) => we.exercise);
+    const newTemplate: WorkoutTemplate = {
+      id: `template-${Date.now()}`,
+      name: newTemplateName,
+      exercises: templateExercises,
+      lastUsed: new Date(),
+    };
+
+    setTemplates([newTemplate, ...templates]);
+    setNewTemplateName("");
+    setShowSaveTemplateModal(false);
+    showAlert(
+      "Success",
+      "Workout saved as template",
+      [],
+      "checkmark-circle",
+      "#BBFD00"
     );
   };
 
-  // Exercise item component for the workout details
-  const ExerciseItem = ({ name, sets, reps, rest }: ExerciseItemProps) => {
-    return (
-      <View className="flex-row items-center justify-between py-3 border-b border-dark-700">
-        <View className="flex-row items-center">
-          <View className="w-10 h-10 rounded-full bg-dark-700 items-center justify-center mr-3">
-            <Ionicons name="barbell-outline" size={18} color="#BBFD00" />
-          </View>
-          <Text className="text-white font-medium">{name}</Text>
-        </View>
+  // Handle creating a new template
+  const handleCreateTemplate = () => {
+    if (!newTemplate.name.trim()) {
+      showAlert("Error", "Please enter a template name");
+      return;
+    }
 
-        <View className="flex-row">
-          <View className="items-center mr-4">
-            <Text className="text-gray-400 text-xs">Sets</Text>
-            <Text className="text-white font-bold">{sets}</Text>
-          </View>
+    if (selectedTemplateExercises.length === 0) {
+      showAlert("Error", "Please add at least one exercise");
+      return;
+    }
 
-          <View className="items-center mr-4">
-            <Text className="text-gray-400 text-xs">Reps</Text>
-            <Text className="text-white font-bold">{reps}</Text>
-          </View>
+    const newTemplateObj: WorkoutTemplate = {
+      id: `template-${Date.now()}`,
+      name: newTemplate.name.trim(),
+      description: newTemplate.description.trim(),
+      exercises: selectedTemplateExercises,
+      lastUsed: new Date(),
+    };
 
-          <View className="items-center">
-            <Text className="text-gray-400 text-xs">Rest</Text>
-            <Text className="text-white font-bold">{rest}s</Text>
-          </View>
-        </View>
-      </View>
+    // Add the new template to the top of the list
+    setTemplates([newTemplateObj, ...templates]);
+
+    // Reset state
+    setNewTemplate({ name: "", description: "" });
+    setSelectedTemplateExercises([]);
+    setShowCreateTemplateModal(false);
+
+    showAlert(
+      "Success",
+      "Template created successfully",
+      [],
+      "checkmark-circle",
+      "#BBFD00"
     );
   };
 
-  // Featured workout details panel
-  const WorkoutDetails = () => {
+  // Handle selecting exercises for template
+  const handleSelectExerciseForTemplate = (exercise: Exercise) => {
+    // Check if exercise already exists in selected exercises
+    const isAlreadySelected = selectedTemplateExercises.some(
+      (ex) => ex.id === exercise.id
+    );
+
+    if (isAlreadySelected) {
+      // Remove the exercise if already selected
+      setSelectedTemplateExercises(
+        selectedTemplateExercises.filter((ex) => ex.id !== exercise.id)
+      );
+    } else {
+      // Add the exercise
+      setSelectedTemplateExercises([...selectedTemplateExercises, exercise]);
+    }
+  };
+
+  // Handle removing exercise from template selection
+  const handleRemoveExerciseFromTemplate = (exerciseId: string) => {
+    setSelectedTemplateExercises(
+      selectedTemplateExercises.filter((ex) => ex.id !== exerciseId)
+    );
+  };
+
+  // Handle adding a set to an exercise
+  const handleAddSet = (exerciseIndex: number) => {
+    const newExercises = [...activeWorkout.exercises];
+    newExercises[exerciseIndex].sets.push({
+      id: `set-${Date.now()}-${exerciseIndex}-${
+        newExercises[exerciseIndex].sets.length
+      }`,
+      weight: 0,
+      reps: 0,
+      completed: false,
+    });
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Handle updating a set's weight or reps
+  const handleUpdateSet = (
+    exerciseIndex: number,
+    setIndex: number,
+    field: "weight" | "reps",
+    value: number
+  ) => {
+    const newExercises = [...activeWorkout.exercises];
+    newExercises[exerciseIndex].sets[setIndex][field] = value;
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Handle toggling a set's completion status
+  const handleToggleSetComplete = (exerciseIndex: number, setIndex: number) => {
+    const newExercises = [...activeWorkout.exercises];
+    newExercises[exerciseIndex].sets[setIndex].completed =
+      !newExercises[exerciseIndex].sets[setIndex].completed;
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Finish current workout
+  const finishWorkout = () => {
+    confirmAlert(
+      "Finish Workout",
+      "Are you sure you want to finish this workout?",
+      () => {
+        // Show the bottom tab bar when finishing a workout
+        setIsVisible(true);
+        setActiveWorkout({
+          name: "New Workout",
+          exercises: [],
+          startTime: null,
+          isActive: false,
+        });
+      }
+    );
+  };
+
+  // Cancel current workout
+  const cancelWorkout = () => {
+    destructiveAlert(
+      "Cancel Workout",
+      "Are you sure you want to cancel this workout? All progress will be lost.",
+      () => {
+        // Show the bottom tab bar when cancelling a workout
+        setIsVisible(true);
+        setActiveWorkout({
+          name: "New Workout",
+          exercises: [],
+          startTime: null,
+          isActive: false,
+        });
+      },
+      undefined,
+      "Cancel Workout",
+      "Keep Working Out",
+      "close-circle-outline"
+    );
+  };
+
+  // Toggle exercise selection for supersets
+  const toggleExerciseSelection = (id: string) => {
+    if (selectedExercises.includes(id)) {
+      setSelectedExercises(selectedExercises.filter((exId) => exId !== id));
+    } else {
+      setSelectedExercises([...selectedExercises, id]);
+    }
+  };
+
+  // Handle template options
+  const handleTemplateOptions = (template: WorkoutTemplate) => {
+    setSelectedTemplate(template);
+    setShowTemplateOptionsModal(true);
+  };
+
+  // Handle template deletion
+  const handleDeleteTemplate = () => {
+    if (!selectedTemplate) return;
+
+    destructiveAlert(
+      "Delete Template",
+      `Are you sure you want to delete "${selectedTemplate.name}" template?`,
+      () => {
+        setTemplates(
+          templates.filter((template) => template.id !== selectedTemplate.id)
+        );
+        setShowTemplateOptionsModal(false);
+        setSelectedTemplate(null);
+      },
+      () => setShowTemplateOptionsModal(false)
+    );
+  };
+
+  // Handle edit template (placeholder for future implementation)
+  const handleEditTemplate = () => {
+    setShowTemplateOptionsModal(false);
+    showAlert(
+      "Feature Coming Soon",
+      "Editing templates will be available in a future update."
+    );
+  };
+
+  // Handle template change for the form
+  const handleTemplateChange = (field: string, value: string) => {
+    setNewTemplate({
+      ...newTemplate,
+      [field]: value,
+    });
+  };
+
+  // If we have an active workout, show the workout screen
+  if (activeWorkout.isActive) {
     return (
-      <Animated.View
-        entering={SlideInRight.duration(400)}
-        className="absolute right-0 top-0 bottom-0 bg-dark-800 w-[90%] rounded-l-3xl border-l border-dark-700 z-10"
-        style={{
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 16,
+      <ActiveWorkoutScreen
+        workout={activeWorkout}
+        onWorkoutNameChange={(name) =>
+          setActiveWorkout({ ...activeWorkout, name })
+        }
+        onGoBack={() => {
+          setIsVisible(true);
+          setActiveWorkout({ ...activeWorkout, isActive: false });
         }}
-      >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="p-6">
-            <TouchableOpacity className="self-start mb-4">
-              <Ionicons name="close" size={24} color="white" />
-            </TouchableOpacity>
-
-            <Image
-              source={{ uri: featuredWorkout.image }}
-              className="w-full h-48 rounded-3xl mb-4"
-              resizeMode="cover"
-            />
-
-            <Text className="text-white text-2xl font-bold mb-1">
-              {featuredWorkout.title}
-            </Text>
-            <Text className="text-gray-400 mb-4">
-              with {featuredWorkout.coach}
-            </Text>
-
-            <View className="flex-row justify-between mb-6">
-              <View className="items-center">
-                <View className="w-12 h-12 rounded-full bg-dark-700 items-center justify-center mb-1">
-                  <Ionicons name="time-outline" size={22} color="#BBFD00" />
-                </View>
-                <Text className="text-white font-bold">
-                  {featuredWorkout.duration}
-                </Text>
-                <Text className="text-gray-400 text-xs">Duration</Text>
-              </View>
-
-              <View className="items-center">
-                <View className="w-12 h-12 rounded-full bg-dark-700 items-center justify-center mb-1">
-                  <Ionicons name="flame-outline" size={22} color="#F44336" />
-                </View>
-                <Text className="text-white font-bold">
-                  {featuredWorkout.calories}
-                </Text>
-                <Text className="text-gray-400 text-xs">Calories</Text>
-              </View>
-
-              <View className="items-center">
-                <View className="w-12 h-12 rounded-full bg-dark-700 items-center justify-center mb-1">
-                  <Ionicons name="fitness-outline" size={22} color="#2196F3" />
-                </View>
-                <Text className="text-white font-bold">
-                  {featuredWorkout.level}
-                </Text>
-                <Text className="text-gray-400 text-xs">Level</Text>
-              </View>
-            </View>
-
-            <Text className="text-white text-lg font-bold mb-4">Exercises</Text>
-
-            {[
-              { name: "Barbell Bench Press", sets: 4, reps: "10-12", rest: 60 },
-              {
-                name: "Incline Dumbbell Press",
-                sets: 3,
-                reps: "12-15",
-                rest: 45,
-              },
-              { name: "Cable Flyes", sets: 3, reps: "15-20", rest: 45 },
-              { name: "Tricep Pushdowns", sets: 4, reps: "12-15", rest: 45 },
-              { name: "Skull Crushers", sets: 3, reps: "10-12", rest: 60 },
-              { name: "Lateral Raises", sets: 3, reps: "15-20", rest: 30 },
-            ].map((exercise, index) => (
-              <ExerciseItem key={index} {...exercise} />
-            ))}
-
-            <TouchableOpacity className="bg-primary py-4 rounded-full mt-6">
-              <Text className="text-dark-900 font-bold text-center text-lg">
-                Start Workout
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </Animated.View>
+        onFinishWorkout={finishWorkout}
+        onCancelWorkout={cancelWorkout}
+        onAddExercise={() => setShowExerciseModal(true)}
+        onAddSet={handleAddSet}
+        onUpdateSet={handleUpdateSet}
+        onToggleSetComplete={handleToggleSetComplete}
+        showExerciseModal={showExerciseModal}
+        setShowExerciseModal={setShowExerciseModal}
+        exercises={filteredExercises}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedExercises={selectedExercises}
+        onToggleExerciseSelection={toggleExerciseSelection}
+        onAddSelectedExercises={addExercisesToWorkout}
+      />
     );
-  };
+  }
 
+  // Main template selection screen
   return (
-    <View className="flex-1 bg-dark-900">
-      {/* Header */}
-      <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
-        <View className="flex-row justify-between items-center">
-          <Text className="text-white text-2xl font-bold">Workouts</Text>
-          <TouchableOpacity className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center">
-            <Ionicons name="options-outline" size={22} color="white" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 100, // Extra space for bottom tab bar
-        }}
-      >
-        {/* Category selection */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 24 }}
-          className="mb-6"
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              onPress={() => setSelectedCategory(category.id)}
-              className={`mr-3 px-4 py-2 rounded-full ${
-                selectedCategory === category.id
-                  ? "bg-primary"
-                  : "bg-dark-800 border border-dark-700"
-              }`}
-            >
-              <Text
-                className={
-                  selectedCategory === category.id
-                    ? "text-dark-900 font-bold"
-                    : "text-white"
-                }
-              >
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Featured workout */}
-        <Animated.View
-          entering={FadeIn.delay(100).duration(500)}
-          className="px-6 mb-8"
-        >
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white text-lg font-bold">
-              Featured Workout
-            </Text>
-          </View>
-
-          <TouchableOpacity className="bg-dark-800 rounded-3xl overflow-hidden border border-dark-700">
-            <Image
-              source={{ uri: featuredWorkout.image }}
-              className="w-full h-48"
-              resizeMode="cover"
-            />
-
-            <View className="p-4">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-white font-bold text-xl">
-                  {featuredWorkout.title}
-                </Text>
-                <View className="bg-primary/20 px-3 py-1 rounded-full">
-                  <Text className="text-primary font-bold">
-                    {featuredWorkout.level}
-                  </Text>
-                </View>
-              </View>
-
-              <View className="flex-row justify-between mb-4">
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="person-circle-outline"
-                    size={18}
-                    color="#A0A0A0"
-                  />
-                  <Text className="text-gray-400 ml-1">
-                    with {featuredWorkout.coach}
-                  </Text>
-                </View>
-
-                <View className="flex-row">
-                  <View className="flex-row items-center mr-3">
-                    <Ionicons name="time-outline" size={16} color="#A0A0A0" />
-                    <Text className="text-gray-400 ml-1">
-                      {featuredWorkout.duration}
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center">
-                    <Ionicons name="flame-outline" size={16} color="#A0A0A0" />
-                    <Text className="text-gray-400 ml-1">
-                      {featuredWorkout.calories} kcal
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              <TouchableOpacity className="bg-primary py-3 rounded-full flex-row items-center justify-center">
-                <Ionicons name="play" size={18} color="#121212" />
-                <Text className="text-dark-900 font-bold ml-2">
-                  Start Workout
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Workout Plans */}
-        <View className="mb-8">
-          <View className="px-6 mb-4 flex-row justify-between items-center">
-            <Text className="text-white text-lg font-bold">Workout Plans</Text>
-            <TouchableOpacity>
-              <Text className="text-primary">View All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 24, paddingRight: 16 }}
-          >
-            {workoutPlans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Recommended workouts */}
-        <View>
-          <View className="px-6 mb-4">
-            <Text className="text-white text-lg font-bold">
-              Recommended for You
-            </Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 24, paddingRight: 16 }}
-          >
-            {filteredWorkouts.map((workout) => (
-              <WorkoutCard key={workout.id} workout={workout} />
-            ))}
-          </ScrollView>
-        </View>
-      </ScrollView>
-
-      {/* Uncomment to show workout details panel */}
-      {/* <WorkoutDetails /> */}
-    </View>
+    <WorkoutHomeScreen
+      templates={templates}
+      exampleTemplates={exampleTemplates}
+      onStartEmptyWorkout={startEmptyWorkout}
+      onStartTemplateWorkout={confirmStartWorkout}
+      onCreateTemplate={() => setShowCreateTemplateModal(true)}
+      onSettingsPress={() => router.push("/(main)/settings")}
+      showCreateTemplateModal={showCreateTemplateModal}
+      setShowCreateTemplateModal={setShowCreateTemplateModal}
+      newTemplate={newTemplate}
+      onTemplateChange={handleTemplateChange}
+      selectedTemplateExercises={selectedTemplateExercises}
+      onRemoveExerciseFromTemplate={handleRemoveExerciseFromTemplate}
+      onShowExerciseSelectionForTemplate={() =>
+        setShowExerciseSelectionForTemplate(true)
+      }
+      onCreateTemplateSubmit={handleCreateTemplate}
+      isTemplateFormValid={
+        newTemplate.name.trim() !== "" && selectedTemplateExercises.length > 0
+      }
+      showTemplateOptionsModal={showTemplateOptionsModal}
+      setShowTemplateOptionsModal={setShowTemplateOptionsModal}
+      selectedTemplate={selectedTemplate}
+      onTemplateOptionsPress={handleTemplateOptions}
+      onEditTemplate={handleEditTemplate}
+      onDeleteTemplate={handleDeleteTemplate}
+      showExerciseSelectionForTemplate={showExerciseSelectionForTemplate}
+      setShowExerciseSelectionForTemplate={setShowExerciseSelectionForTemplate}
+      exercises={filteredExercises}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSelectExerciseForTemplate={handleSelectExerciseForTemplate}
+    />
   );
-}
+};
+
+export default WorkoutScreen;

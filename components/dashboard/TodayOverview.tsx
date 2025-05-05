@@ -48,12 +48,14 @@ interface TodayOverviewProps {
   workouts: WorkoutData[];
   caloriesData: CalorieData;
   waterData: WaterData;
+  isDark?: boolean;
 }
 
 export const TodayOverview = ({
   workouts,
   caloriesData,
   waterData,
+  isDark = true,
 }: TodayOverviewProps) => {
   const scrollX = useSharedValue(0);
   const [activeWidgetIndex, setActiveWidgetIndex] = useState(0);
@@ -119,7 +121,15 @@ export const TodayOverview = ({
   return (
     <View className="mb-8">
       <View className="flex-row justify-between items-center px-6 mb-4">
-        <Text className="text-white text-lg font-bold">Today's Overview</Text>
+        <Text
+          className={
+            isDark
+              ? "text-white text-lg font-bold"
+              : "text-dark-900 text-lg font-bold"
+          }
+        >
+          Today's Overview
+        </Text>
         <View className="flex-row">
           {Array.from({ length: totalWidgets }).map((_, i) => (
             <TouchableOpacity
@@ -134,7 +144,11 @@ export const TodayOverview = ({
             >
               <View
                 className={`w-2 h-2 rounded-full mx-1 ${
-                  activeWidgetIndex === i ? "bg-primary" : "bg-gray-700"
+                  activeWidgetIndex === i
+                    ? "bg-primary"
+                    : isDark
+                    ? "bg-gray-700"
+                    : "bg-gray-300"
                 }`}
               />
             </TouchableOpacity>
@@ -156,7 +170,11 @@ export const TodayOverview = ({
       >
         {/* Today's Workout Widget */}
         <TouchableOpacity
-          className="bg-dark-800 rounded-3xl p-5 border border-dark-700 mr-4"
+          className={
+            isDark
+              ? "bg-dark-800 rounded-3xl p-5 border border-dark-700 mr-4"
+              : "bg-white rounded-3xl p-5 border border-light-300 mr-4 shadow"
+          }
           style={{ width: widgetWidth }}
           activeOpacity={0.8}
           onPress={() => router.push("/workout")}
@@ -167,10 +185,16 @@ export const TodayOverview = ({
                 <Ionicons name="barbell" size={24} color="#121212" />
               </View>
               <View>
-                <Text className="text-white font-bold text-lg">
+                <Text
+                  className={
+                    isDark
+                      ? "text-white font-bold text-lg"
+                      : "text-dark-900 font-bold text-lg"
+                  }
+                >
                   {workouts[0].name}
                 </Text>
-                <Text className="text-gray-400">
+                <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
                   {workouts[0].duration} · {workouts[0].exercises} exercises
                 </Text>
               </View>
@@ -178,19 +202,29 @@ export const TodayOverview = ({
             <Ionicons name="chevron-forward" size={24} color="#BBFD00" />
           </View>
 
-          <View className="h-[1px] bg-dark-700 my-2" />
+          <View
+            className={
+              isDark ? "h-[1px] bg-dark-700 my-2" : "h-[1px] bg-light-300 my-2"
+            }
+          />
 
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <Ionicons name="flame-outline" size={18} color="#F44336" />
-              <Text className="text-white ml-1">
+              <Text
+                className={isDark ? "text-white ml-1" : "text-dark-900 ml-1"}
+              >
                 {workouts[0].calories} kcal
               </Text>
             </View>
 
             <View className="flex-row items-center">
               <Ionicons name="time-outline" size={18} color="#BBFD00" />
-              <Text className="text-white ml-1">{workouts[0].duration}</Text>
+              <Text
+                className={isDark ? "text-white ml-1" : "text-dark-900 ml-1"}
+              >
+                {workouts[0].duration}
+              </Text>
             </View>
 
             <TouchableOpacity className="bg-primary px-4 py-2 rounded-full flex-row items-center">
@@ -202,7 +236,11 @@ export const TodayOverview = ({
 
         {/* Daily Calories Widget */}
         <TouchableOpacity
-          className="bg-dark-800 rounded-3xl p-5 border border-dark-700 mr-4"
+          className={
+            isDark
+              ? "bg-dark-800 rounded-3xl p-5 border border-dark-700 mr-4"
+              : "bg-white rounded-3xl p-5 border border-light-300 mr-4 shadow"
+          }
           style={{ width: widgetWidth }}
           activeOpacity={0.8}
           onPress={() => router.push("/(main)/diet")}
@@ -213,10 +251,16 @@ export const TodayOverview = ({
                 <Ionicons name="nutrition" size={24} color="#121212" />
               </View>
               <View>
-                <Text className="text-white font-bold text-lg">
+                <Text
+                  className={
+                    isDark
+                      ? "text-white font-bold text-lg"
+                      : "text-dark-900 font-bold text-lg"
+                  }
+                >
                   Daily Calories
                 </Text>
-                <Text className="text-gray-400">
+                <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
                   {caloriesData.percentage}% of daily goal
                 </Text>
               </View>
@@ -224,7 +268,13 @@ export const TodayOverview = ({
             <Ionicons name="chevron-forward" size={24} color="#FF6B3E" />
           </View>
 
-          <View className="h-3 bg-dark-700 rounded-full overflow-hidden mb-3">
+          <View
+            className={
+              isDark
+                ? "h-3 bg-dark-700 rounded-full overflow-hidden mb-3"
+                : "h-3 bg-light-200 rounded-full overflow-hidden mb-3"
+            }
+          >
             <View
               className="h-full bg-[#FF6B3E]"
               style={{ width: `${caloriesData.percentage}%` }}
@@ -233,22 +283,46 @@ export const TodayOverview = ({
 
           <View className="flex-row justify-between">
             <View>
-              <Text className="text-gray-400">Consumed</Text>
-              <Text className="text-white font-bold text-xl">
+              <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
+                Consumed
+              </Text>
+              <Text
+                className={
+                  isDark
+                    ? "text-white font-bold text-xl"
+                    : "text-dark-900 font-bold text-xl"
+                }
+              >
                 {caloriesData.consumed}
               </Text>
             </View>
 
             <View>
-              <Text className="text-gray-400">Remaining</Text>
-              <Text className="text-white font-bold text-xl">
+              <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
+                Remaining
+              </Text>
+              <Text
+                className={
+                  isDark
+                    ? "text-white font-bold text-xl"
+                    : "text-dark-900 font-bold text-xl"
+                }
+              >
                 {caloriesData.remaining}
               </Text>
             </View>
 
             <View>
-              <Text className="text-gray-400">Goal</Text>
-              <Text className="text-white font-bold text-xl">
+              <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
+                Goal
+              </Text>
+              <Text
+                className={
+                  isDark
+                    ? "text-white font-bold text-xl"
+                    : "text-dark-900 font-bold text-xl"
+                }
+              >
                 {caloriesData.goal}
               </Text>
             </View>
@@ -257,7 +331,11 @@ export const TodayOverview = ({
 
         {/* Water Intake Widget */}
         <TouchableOpacity
-          className="bg-dark-800 rounded-3xl p-5 border border-dark-700"
+          className={
+            isDark
+              ? "bg-dark-800 rounded-3xl p-5 border border-dark-700"
+              : "bg-white rounded-3xl p-5 border border-light-300 shadow"
+          }
           style={{ width: widgetWidth }}
           activeOpacity={0.8}
         >
@@ -267,10 +345,16 @@ export const TodayOverview = ({
                 <Ionicons name="water" size={24} color="#121212" />
               </View>
               <View>
-                <Text className="text-white font-bold text-lg">
+                <Text
+                  className={
+                    isDark
+                      ? "text-white font-bold text-lg"
+                      : "text-dark-900 font-bold text-lg"
+                  }
+                >
                   Water Intake
                 </Text>
-                <Text className="text-gray-400">
+                <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
                   {waterData.consumed} of {waterData.goal} glasses
                 </Text>
               </View>
@@ -288,7 +372,7 @@ export const TodayOverview = ({
                   <Ionicons
                     name="water"
                     size={28}
-                    color={isFilled ? "#2196F3" : "#333"}
+                    color={isFilled ? "#2196F3" : isDark ? "#333" : "#e0e0e0"}
                   />
                 </Animated.View>
               );
@@ -297,15 +381,33 @@ export const TodayOverview = ({
 
           <View className="flex-row justify-between items-center">
             <View>
-              <Text className="text-gray-400">Progress</Text>
-              <Text className="text-white font-bold text-xl">
+              <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
+                Progress
+              </Text>
+              <Text
+                className={
+                  isDark
+                    ? "text-white font-bold text-xl"
+                    : "text-dark-900 font-bold text-xl"
+                }
+              >
                 {waterData.percentage}%
               </Text>
             </View>
 
             <View className="flex-row">
-              <TouchableOpacity className="bg-dark-700 w-10 h-10 rounded-full items-center justify-center">
-                <Ionicons name="remove" size={24} color="white" />
+              <TouchableOpacity
+                className={
+                  isDark
+                    ? "bg-dark-700 w-10 h-10 rounded-full items-center justify-center"
+                    : "bg-light-200 w-10 h-10 rounded-full items-center justify-center"
+                }
+              >
+                <Ionicons
+                  name="remove"
+                  size={24}
+                  color={isDark ? "white" : "#121212"}
+                />
               </TouchableOpacity>
               <TouchableOpacity className="bg-[#2196F3] w-10 h-10 rounded-full items-center justify-center ml-3">
                 <Ionicons name="add" size={24} color="#121212" />
