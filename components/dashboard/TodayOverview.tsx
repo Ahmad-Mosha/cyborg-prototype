@@ -17,7 +17,6 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
-import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -49,6 +48,7 @@ interface TodayOverviewProps {
   caloriesData: CalorieData;
   waterData: WaterData;
   isDark?: boolean;
+  onNavigate?: (route: string) => void;
 }
 
 export const TodayOverview = ({
@@ -56,10 +56,20 @@ export const TodayOverview = ({
   caloriesData,
   waterData,
   isDark = true,
+  onNavigate,
 }: TodayOverviewProps) => {
   const scrollX = useSharedValue(0);
   const [activeWidgetIndex, setActiveWidgetIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+  
+  // Navigation handler that won't cause errors
+  const handleNavigation = useCallback((route: string) => {
+    if (onNavigate) {
+      onNavigate(route);
+    } else {
+      console.log("Navigation not available for route:", route);
+    }
+  }, [onNavigate]);
 
   // Configuration
   const totalWidgets = 3;
@@ -177,7 +187,7 @@ export const TodayOverview = ({
           }
           style={{ width: widgetWidth }}
           activeOpacity={0.8}
-          onPress={() => router.push("/workout")}
+          onPress={() => handleNavigation("/workout")}
         >
           <View className="flex-row justify-between items-center mb-4">
             <View className="flex-row items-center">
@@ -243,7 +253,7 @@ export const TodayOverview = ({
           }
           style={{ width: widgetWidth }}
           activeOpacity={0.8}
-          onPress={() => router.push("/(main)/diet")}
+          onPress={() => handleNavigation("/(main)/diet")}
         >
           <View className="flex-row justify-between items-center mb-4">
             <View className="flex-row items-center">

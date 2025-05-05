@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,15 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark } = useTheme();
+
+  // Safe navigation handler for child components
+  const handleNavigation = useCallback((route: string) => {
+    try {
+      router.push(route as any);
+    } catch (error) {
+      console.log("Navigation error:", error);
+    }
+  }, []);
 
   // Sample data for widgets
   const workouts = [
@@ -117,6 +126,7 @@ export default function DashboardScreen() {
           caloriesData={caloriesData}
           waterData={waterData}
           isDark={isDark}
+          onNavigate={handleNavigation}
         />
 
         {/* Quick Access Section */}
