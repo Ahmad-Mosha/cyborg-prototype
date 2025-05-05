@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 
 // Import our custom components
 import { TodayOverview } from "../../../components/dashboard/TodayOverview";
@@ -23,6 +24,7 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   // Safe navigation handler for child components
   const handleNavigation = useCallback((route: string) => {
@@ -36,7 +38,7 @@ export default function DashboardScreen() {
   // Sample data for widgets
   const workouts = [
     {
-      name: "Upper Body",
+      name: t("workout.upperBody", "Upper Body"),
       duration: "45 mins",
       exercises: 5,
       calories: 320,
@@ -97,10 +99,13 @@ export default function DashboardScreen() {
                   : "text-dark-900 text-2xl font-bold"
               }
             >
-              Hello, <Text className="text-primary">Athlete</Text>
+              {t("dashboard.hello", "Hello")},{" "}
+              <Text className="text-primary">
+                {t("dashboard.athlete", "Athlete")}
+              </Text>
             </Text>
             <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-              Let's crush today's workout!
+              {t("dashboard.motivational", "Let's crush today's workout!")}
             </Text>
           </View>
 

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 import { COLORS } from "@/utils/constants/theme";
 import { Exercise, NewTemplate } from "@/types/workout";
 
@@ -38,6 +39,7 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
   isEditing = false,
 }) => {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Modal
@@ -57,7 +59,9 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
               isDark ? "text-white" : "text-dark-900"
             }`}
           >
-            {isEditing ? "Edit Template" : "Create Template"}
+            {isEditing
+              ? t("workout.editTemplate", "Edit Template")
+              : t("workout.createTemplate", "Create Template")}
           </Text>
           <TouchableOpacity onPress={onClose}>
             <Ionicons
@@ -74,7 +78,7 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
               isDark ? "text-white" : "text-dark-900"
             }`}
           >
-            Template Name *
+            {t("workout.templateName", "Template Name")} *
           </Text>
           <TextInput
             className={`border rounded-xl h-12 px-4 mb-4 ${
@@ -82,7 +86,7 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
                 ? "bg-dark-800 border-dark-700 text-white"
                 : "bg-white border-light-300 text-dark-900"
             }`}
-            placeholder="Enter template name"
+            placeholder={t("workout.enterTemplateName", "Enter template name")}
             placeholderTextColor={isDark ? COLORS.textDim : "#9CA3AF"}
             value={template.name}
             onChangeText={(text) => onTemplateChange("name", text)}
@@ -93,7 +97,7 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
               isDark ? "text-white" : "text-dark-900"
             }`}
           >
-            Description
+            {t("workout.templateDescription", "Description")}
           </Text>
           <TextInput
             className={`border rounded-xl h-24 px-4 py-2 mb-6 ${
@@ -101,7 +105,10 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
                 ? "bg-dark-800 border-dark-700 text-white"
                 : "bg-white border-light-300 text-dark-900"
             }`}
-            placeholder="Enter template description (optional)"
+            placeholder={t(
+              "workout.enterTemplateDescription",
+              "Enter template description (optional)"
+            )}
             placeholderTextColor={isDark ? COLORS.textDim : "#9CA3AF"}
             multiline={true}
             textAlignVertical="top"
@@ -114,7 +121,7 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
               isDark ? "text-white" : "text-dark-900"
             }`}
           >
-            Exercises *
+            {t("workout.exercises", "Exercises")} *
           </Text>
 
           {/* Selected exercises list */}
@@ -124,7 +131,10 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
                 isDark ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              No exercises selected. Add exercises below.
+              {t(
+                "workout.noExercisesSelected",
+                "No exercises selected. Add exercises below."
+              )}
             </Text>
           ) : (
             <View className="mb-4">
@@ -180,7 +190,9 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
             onPress={onAddExercisesPress}
           >
             <Ionicons name="add-circle" size={20} color={COLORS.primary} />
-            <Text className="text-primary font-medium ml-2">Add Exercises</Text>
+            <Text className="text-primary font-medium ml-2">
+              {t("workout.addExercise", "Add Exercises")}
+            </Text>
           </TouchableOpacity>
 
           {/* Save button */}
@@ -200,7 +212,9 @@ const TemplateFormModal: React.FC<TemplateFormModalProps> = ({
                   : "text-gray-500"
               }`}
             >
-              {isEditing ? "Save Changes" : "Create Template"}
+              {isEditing
+                ? t("workout.saveChanges", "Save Changes")
+                : t("workout.createTemplate", "Create Template")}
             </Text>
           </TouchableOpacity>
         </ScrollView>

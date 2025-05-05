@@ -18,6 +18,7 @@ import { ExerciseDetailModalProps } from "../../types/exercises";
 import AboutTab from "./tabs/AboutTab";
 import HistoryTab from "./tabs/HistoryTab";
 import RecordsTab from "./tabs/RecordsTab";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -35,7 +36,8 @@ const ExerciseDetailModal = ({
   formatDate,
 }: ExerciseDetailModalProps) => {
   // Ref for the FlatList to handle programmatic navigation between tabs
-  const tabFlatListRef = useRef(null);
+  const tabFlatListRef = useRef<FlatList>(null);
+  const { isDark } = useTheme();
 
   // Shared values for animations
   const tabScrollX = useSharedValue(0);
@@ -130,35 +132,59 @@ const ExerciseDetailModal = ({
       animationType="slide"
       statusBarTranslucent
     >
-      <StatusBar barStyle="light-content" />
-      <View className="flex-1 bg-dark-900">
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-white"}>
         {/* Header */}
-        <View className="bg-dark-900 px-6 pt-14 pb-4">
+        <View
+          className={
+            isDark ? "bg-dark-900 px-6 pt-14 pb-4" : "bg-white px-6 pt-14 pb-4"
+          }
+        >
           <View className="flex-row justify-between items-center">
             <TouchableOpacity
               onPress={onClose}
-              className="bg-dark-700 w-10 h-10 rounded-full items-center justify-center"
+              className={`${
+                isDark ? "bg-dark-700" : "bg-light-200"
+              } w-10 h-10 rounded-full items-center justify-center`}
             >
-              <Ionicons name="arrow-back" size={20} color="white" />
+              <Ionicons
+                name="arrow-back"
+                size={20}
+                color={isDark ? "white" : "#121212"}
+              />
             </TouchableOpacity>
-            <Text className="text-white text-lg font-bold">
+            <Text
+              className={
+                isDark
+                  ? "text-white text-lg font-bold"
+                  : "text-dark-900 text-lg font-bold"
+              }
+            >
               Exercise Details
             </Text>
             <TouchableOpacity
               onPress={() => exercise && onToggleFavorite(exercise.id)}
-              className="bg-dark-700 w-10 h-10 rounded-full items-center justify-center"
+              className={`${
+                isDark ? "bg-dark-700" : "bg-light-200"
+              } w-10 h-10 rounded-full items-center justify-center`}
             >
               <Ionicons
                 name={isFavorite ? "heart" : "heart-outline"}
                 size={20}
-                color="white"
+                color={isFavorite ? "#FF6B6B" : isDark ? "white" : "#121212"}
               />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Tabs */}
-        <View className="flex-row bg-dark-900 border-b border-dark-800">
+        <View
+          className={
+            isDark
+              ? "flex-row bg-dark-900 border-b border-dark-800"
+              : "flex-row bg-white border-b border-gray-200"
+          }
+        >
           {["about", "history", "records"].map((tab, index) => (
             <TouchableOpacity
               key={tab}
@@ -169,7 +195,9 @@ const ExerciseDetailModal = ({
                 className={`text-base ${
                   activeTab === tab
                     ? "text-primary font-semibold"
-                    : "text-gray-400"
+                    : isDark
+                    ? "text-gray-400"
+                    : "text-gray-600"
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}

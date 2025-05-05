@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 import { WorkoutTemplate } from "@/types/workout";
 
 interface WorkoutTemplateCardProps {
@@ -18,6 +19,7 @@ const WorkoutTemplateCard: React.FC<WorkoutTemplateCardProps> = ({
   onOptionsPress,
 }) => {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [isPressed, setIsPressed] = useState(false);
 
   // Format template last used date
@@ -25,7 +27,7 @@ const WorkoutTemplateCard: React.FC<WorkoutTemplateCardProps> = ({
     const days = Math.round(
       (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)
     );
-    return `${days} days ago`;
+    return `${days} ${t("workout.daysAgo", "days ago")}`;
   };
 
   // Debounced press handler to prevent multiple clicks
@@ -91,7 +93,7 @@ const WorkoutTemplateCard: React.FC<WorkoutTemplateCardProps> = ({
           <Text
             className={`text-xs ${isDark ? "text-primary" : "text-primary"}`}
           >
-            Example workout
+            {t("workout.exampleWorkout", "Example workout")}
           </Text>
         ) : (
           <View className="flex-row items-center">
@@ -105,7 +107,9 @@ const WorkoutTemplateCard: React.FC<WorkoutTemplateCardProps> = ({
                 isDark ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              {template.lastUsed ? formatTimeAgo(template.lastUsed) : "New"}
+              {template.lastUsed
+                ? formatTimeAgo(template.lastUsed)
+                : t("workout.new", "New")}
             </Text>
           </View>
         )}

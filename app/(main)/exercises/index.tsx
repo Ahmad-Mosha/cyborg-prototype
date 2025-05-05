@@ -7,12 +7,9 @@ import {
   TextInput,
   FlatList,
   Dimensions,
-  StatusBar,
-  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -28,11 +25,8 @@ import {
   SortModal,
   RecordsHistoryModal,
 } from "../../../components/exercises";
-import {
-  Exercise,
-  ExerciseHistorySession,
-  ExerciseRecords,
-} from "../../../types/workout";
+import { Exercise } from "../../../types/exercises"; // Changed from types/workout
+import { useTheme } from "../../../contexts/ThemeContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -472,36 +466,63 @@ export default function ExercisesScreen() {
     }, 100);
   };
 
+  // Get theme from context
+  const { isDark } = useTheme();
+
   return (
-    <View className="flex-1 bg-dark-900">
+    <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
       {/* Header */}
       <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
         <View className="flex-row items-center">
           {!showSearch ? (
             <>
-              <Text className="text-white text-2xl font-bold flex-1">
+              <Text
+                className={
+                  isDark
+                    ? "text-white text-2xl font-bold flex-1"
+                    : "text-dark-900 text-2xl font-bold flex-1"
+                }
+              >
                 Exercises
               </Text>
               <View className="flex-row">
                 <TouchableOpacity
-                  className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center mr-2"
+                  className={`w-10 h-10 rounded-full ${
+                    isDark ? "bg-dark-800" : "bg-light-200"
+                  } items-center justify-center mr-2`}
                   onPress={toggleSearch}
                 >
-                  <Ionicons name="search" size={22} color="white" />
+                  <Ionicons
+                    name="search"
+                    size={22}
+                    color={isDark ? "white" : "#121212"}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center mr-2"
+                  className={`w-10 h-10 rounded-full ${
+                    isDark ? "bg-dark-800" : "bg-light-200"
+                  } items-center justify-center mr-2`}
                   onPress={() => setShowSort(true)}
                   testID="sort-button"
                 >
-                  <Ionicons name="swap-vertical" size={22} color="white" />
+                  <Ionicons
+                    name="swap-vertical"
+                    size={22}
+                    color={isDark ? "white" : "#121212"}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center mr-2"
+                  className={`w-10 h-10 rounded-full ${
+                    isDark ? "bg-dark-800" : "bg-light-200"
+                  } items-center justify-center mr-2`}
                   onPress={() => setShowFilter(true)}
                   testID="filter-button"
                 >
-                  <Ionicons name="filter" size={22} color="white" />
+                  <Ionicons
+                    name="filter"
+                    size={22}
+                    color={isDark ? "white" : "#121212"}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="w-10 h-10 rounded-full bg-primary items-center justify-center"
@@ -517,15 +538,25 @@ export default function ExercisesScreen() {
             <>
               <TouchableOpacity
                 onPress={toggleSearch}
-                className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center mr-2"
+                className={`w-10 h-10 rounded-full ${
+                  isDark ? "bg-dark-800" : "bg-light-200"
+                } items-center justify-center mr-2`}
               >
-                <Ionicons name="arrow-back" size={22} color="white" />
+                <Ionicons
+                  name="arrow-back"
+                  size={22}
+                  color={isDark ? "white" : "#121212"}
+                />
               </TouchableOpacity>
               <Animated.View style={searchContainerStyle}>
                 <TextInput
-                  className="flex-1 rounded-full bg-dark-800 text-white h-10 px-4"
+                  className={`flex-1 rounded-full ${
+                    isDark
+                      ? "bg-dark-800 text-white"
+                      : "bg-light-200 text-dark-900"
+                  } h-10 px-4`}
                   placeholder="Search exercises..."
-                  placeholderTextColor="#777"
+                  placeholderTextColor={isDark ? "#777" : "#999"}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoFocus
@@ -534,10 +565,16 @@ export default function ExercisesScreen() {
               {searchQuery.length > 0 && (
                 <TouchableOpacity
                   onPress={() => setSearchQuery("")}
-                  className="absolute right-2 w-6 h-6 rounded-full bg-dark-700 items-center justify-center"
+                  className={`absolute right-2 w-6 h-6 rounded-full ${
+                    isDark ? "bg-dark-700" : "bg-light-300"
+                  } items-center justify-center`}
                   style={{ right: 10 }}
                 >
-                  <Ionicons name="close" size={14} color="white" />
+                  <Ionicons
+                    name="close"
+                    size={14}
+                    color={isDark ? "white" : "#121212"}
+                  />
                 </TouchableOpacity>
               )}
             </>
@@ -555,45 +592,24 @@ export default function ExercisesScreen() {
           >
             <TouchableOpacity
               onPress={resetFilters}
-              className="bg-dark-800 rounded-full h-5 px-2 mr-2 flex-row items-center"
+              className={`${
+                isDark ? "bg-dark-800" : "bg-light-200"
+              } rounded-full h-5 px-2 mr-2 flex-row items-center`}
             >
               <Ionicons name="close-circle" size={10} color="#BBFD00" />
-              <Text className="text-white ml-1 text-xs">Clear</Text>
+              <Text
+                className={
+                  isDark
+                    ? "text-white ml-1 text-xs"
+                    : "text-dark-900 ml-1 text-xs"
+                }
+              >
+                Clear
+              </Text>
             </TouchableOpacity>
 
-            {selectedBodyParts.map((bodyPart) => (
-              <TouchableOpacity
-                key={`bp-${bodyPart}`}
-                onPress={() => toggleBodyPartFilter(bodyPart)}
-                className="bg-primary/90 rounded-full h-5 px-2 mr-2 flex-row items-center"
-              >
-                <Text
-                  className="text-dark-900 text-xs mr-1"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {bodyPart}
-                </Text>
-                <Ionicons name="close-circle" size={10} color="#121212" />
-              </TouchableOpacity>
-            ))}
-
-            {selectedCategories.map((category) => (
-              <TouchableOpacity
-                key={`cat-${category}`}
-                onPress={() => toggleCategoryFilter(category)}
-                className="bg-primary/90 rounded-full h-5 px-2 mr-2 flex-row items-center"
-              >
-                <Text
-                  className="text-dark-900 text-xs mr-1"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {category}
-                </Text>
-                <Ionicons name="close-circle" size={10} color="#121212" />
-              </TouchableOpacity>
-            ))}
+            {/* Rest of filter indicators */}
+            {/* ...existing code... */}
           </ScrollView>
         </View>
       )}

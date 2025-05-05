@@ -4,10 +4,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
+import LanguageSelector from "@/components/ui/LanguageSelector";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   // State for toggle switches
   const [notifications, setNotifications] = React.useState(true);
@@ -49,8 +52,31 @@ export default function SettingsScreen() {
                 : "text-dark-900 text-xl font-bold"
             }
           >
-            Settings
+            {t("settings.settings", "Settings")}
           </Text>
+        </View>
+
+        {/* Language Section */}
+        <View className="mt-6 px-4">
+          <Text
+            className={
+              isDark
+                ? "text-gray-400 text-sm uppercase font-medium mb-2 px-2"
+                : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
+            }
+          >
+            {t("settings.language", "Language")}
+          </Text>
+
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-xl overflow-hidden"
+                : "bg-white rounded-xl overflow-hidden shadow"
+            }
+          >
+            <LanguageSelector />
+          </View>
         </View>
 
         {/* App Preferences Section */}
@@ -62,7 +88,7 @@ export default function SettingsScreen() {
                 : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
             }
           >
-            App Preferences
+            {t("settings.appPreferences", "App Preferences")}
           </Text>
 
           <View
@@ -73,16 +99,19 @@ export default function SettingsScreen() {
             }
           >
             <ToggleSetting
-              title="Dark Mode"
-              description="Enable dark theme"
+              title={t("settings.darkMode", "Dark Mode")}
+              description={t("settings.enableDarkTheme", "Enable dark theme")}
               icon="moon-outline"
               isEnabled={isDark}
               onToggle={handleThemeToggle}
             />
 
             <ToggleSetting
-              title="Notifications"
-              description="Enable push notifications"
+              title={t("settings.notifications", "Notifications")}
+              description={t(
+                "settings.enablePushNotifications",
+                "Enable push notifications"
+              )}
               icon="notifications-outline"
               isEnabled={notifications}
               onToggle={() => setNotifications(!notifications)}
@@ -99,7 +128,7 @@ export default function SettingsScreen() {
                 : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
             }
           >
-            Reminders
+            {t("settings.reminders", "Reminders")}
           </Text>
 
           <View
@@ -110,16 +139,22 @@ export default function SettingsScreen() {
             }
           >
             <ToggleSetting
-              title="Workout Reminders"
-              description="Get notified about scheduled workouts"
+              title={t("settings.workoutReminders", "Workout Reminders")}
+              description={t(
+                "settings.workoutRemindersDesc",
+                "Get notified about scheduled workouts"
+              )}
               icon="barbell-outline"
               isEnabled={workoutReminders}
               onToggle={() => setWorkoutReminders(!workoutReminders)}
             />
 
             <ToggleSetting
-              title="Meal Tracking Reminders"
-              description="Get reminders to log your meals"
+              title={t("settings.mealReminders", "Meal Tracking Reminders")}
+              description={t(
+                "settings.mealRemindersDesc",
+                "Get reminders to log your meals"
+              )}
               icon="restaurant-outline"
               isEnabled={mealReminders}
               onToggle={() => setMealReminders(!mealReminders)}
@@ -137,7 +172,7 @@ export default function SettingsScreen() {
                 : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
             }
           >
-            Data & Privacy
+            {t("settings.dataAndPrivacy", "Data & Privacy")}
           </Text>
 
           <View
@@ -148,23 +183,32 @@ export default function SettingsScreen() {
             }
           >
             <ToggleSetting
-              title="Sync Data"
-              description="Sync your data across devices"
+              title={t("settings.syncData", "Sync Data")}
+              description={t(
+                "settings.syncDataDesc",
+                "Sync your data across devices"
+              )}
               icon="cloud-upload-outline"
               isEnabled={dataSync}
               onToggle={() => setDataSync(!dataSync)}
             />
 
             <LinkSetting
-              title="Manage Your Data"
-              description="View and control your data"
+              title={t("settings.manageData", "Manage Your Data")}
+              description={t(
+                "settings.manageDataDesc",
+                "View and control your data"
+              )}
               icon="shield-checkmark-outline"
               onPress={() => console.log("Navigate to data management")}
             />
 
             <LinkSetting
-              title="Privacy Policy"
-              description="Read our privacy policy"
+              title={t("settings.privacyPolicy", "Privacy Policy")}
+              description={t(
+                "settings.privacyPolicyDesc",
+                "Read our privacy policy"
+              )}
               icon="document-text-outline"
               onPress={() => console.log("Open privacy policy")}
               isLast={true}
@@ -181,7 +225,7 @@ export default function SettingsScreen() {
                 : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
             }
           >
-            Account
+            {t("settings.account", "Account")}
           </Text>
 
           <View
@@ -192,15 +236,21 @@ export default function SettingsScreen() {
             }
           >
             <LinkSetting
-              title="Change Password"
-              description="Update your account password"
+              title={t("settings.changePassword", "Change Password")}
+              description={t(
+                "settings.changePasswordDesc",
+                "Update your account password"
+              )}
               icon="key-outline"
               onPress={() => console.log("Navigate to change password")}
             />
 
             <LinkSetting
-              title="Subscription"
-              description="Manage your subscription"
+              title={t("settings.subscription", "Subscription")}
+              description={t(
+                "settings.subscriptionDesc",
+                "Manage your subscription"
+              )}
               icon="card-outline"
               onPress={() => console.log("Navigate to subscription")}
               isLast={true}
@@ -217,7 +267,7 @@ export default function SettingsScreen() {
                 : "text-gray-600 text-sm uppercase font-medium mb-2 px-2"
             }
           >
-            About
+            {t("settings.about", "About")}
           </Text>
 
           <View
@@ -228,22 +278,31 @@ export default function SettingsScreen() {
             }
           >
             <LinkSetting
-              title="About CyborgFit"
-              description="Learn more about the app"
+              title={t("settings.aboutCyborgFit", "About CyborgFit")}
+              description={t(
+                "settings.aboutCyborgFitDesc",
+                "Learn more about the app"
+              )}
               icon="information-circle-outline"
               onPress={() => console.log("Navigate to about")}
             />
 
             <LinkSetting
-              title="Rate the App"
-              description="Share your feedback with us"
+              title={t("settings.rateApp", "Rate the App")}
+              description={t(
+                "settings.rateAppDesc",
+                "Share your feedback with us"
+              )}
               icon="star-outline"
               onPress={() => console.log("Open app rating")}
             />
 
             <LinkSetting
-              title="Help Center"
-              description="Get assistance and support"
+              title={t("settings.helpCenter", "Help Center")}
+              description={t(
+                "settings.helpCenterDesc",
+                "Get assistance and support"
+              )}
               icon="help-buoy-outline"
               onPress={() => console.log("Navigate to help center")}
               isLast={true}
@@ -258,7 +317,7 @@ export default function SettingsScreen() {
               isDark ? "text-gray-500 text-sm" : "text-gray-600 text-sm"
             }
           >
-            Version 1.0.0
+            {t("settings.version", "Version")} 1.0.0
           </Text>
           <Text
             className={

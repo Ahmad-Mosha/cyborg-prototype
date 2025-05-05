@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Exercise, WorkoutTemplate } from "@/types/workout";
+import { useTranslation } from "react-i18next";
 import WorkoutTemplateCard from "./WorkoutTemplateCard";
 import TemplateFormModal from "./TemplateFormModal";
 import TemplateOptionsModal from "./TemplateOptionsModal";
@@ -77,13 +78,14 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
 }) => {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   // Format template last used date
   const formatTimeAgo = (date: Date) => {
     const days = Math.round(
       (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)
     );
-    return `${days} days ago`;
+    return `${days} ${t("workout.daysAgo", "days ago")}`;
   };
 
   return (
@@ -99,7 +101,7 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
             isDark ? "text-white" : "text-dark-900"
           }`}
         >
-          Workout
+          {t("workout.workout", "Workout")}
         </Text>
         <TouchableOpacity
           className={`w-10 h-10 rounded-full items-center justify-center ${
@@ -121,14 +123,14 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
             isDark ? "text-white" : "text-dark-900"
           }`}
         >
-          Quick start
+          {t("workout.quickStart", "Quick start")}
         </Text>
         <TouchableOpacity
           className="h-12 bg-primary rounded-2xl justify-center items-center mt-2 mb-6"
           onPress={onStartEmptyWorkout}
         >
           <Text className="text-dark-900 font-bold">
-            START AN EMPTY WORKOUT
+            {t("workout.startEmptyWorkout", "START AN EMPTY WORKOUT")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -140,7 +142,7 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
               isDark ? "text-white" : "text-dark-900"
             }`}
           >
-            Templates
+            {t("workout.templates", "Templates")}
           </Text>
           <View className="flex-row">
             <TouchableOpacity
@@ -185,7 +187,7 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
             isDark ? "text-white" : "text-dark-900"
           } font-medium mb-2`}
         >
-          My Templates ({templates.length})
+          {t("workout.myTemplates", "My Templates")} ({templates.length})
         </Text>
 
         <ScrollView
@@ -209,7 +211,8 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
             isDark ? "text-white" : "text-dark-900"
           } font-medium mb-2`}
         >
-          Example Templates ({exampleTemplates.length})
+          {t("workout.exampleTemplates", "Example Templates")} (
+          {exampleTemplates.length})
         </Text>
 
         <ScrollView

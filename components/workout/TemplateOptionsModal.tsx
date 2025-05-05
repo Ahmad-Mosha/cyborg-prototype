@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 import { COLORS } from "@/utils/constants/theme";
 import { WorkoutTemplate } from "@/types/workout";
 
@@ -23,6 +24,7 @@ const TemplateOptionsModal: React.FC<TemplateOptionsModalProps> = ({
   onDelete,
 }) => {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   if (!template) return null;
 
@@ -70,7 +72,7 @@ const TemplateOptionsModal: React.FC<TemplateOptionsModalProps> = ({
                 isDark ? "text-white" : "text-dark-900"
               }`}
             >
-              Start Workout
+              {t("workout.start", "Start Workout")}
             </Text>
           </TouchableOpacity>
 
@@ -90,7 +92,7 @@ const TemplateOptionsModal: React.FC<TemplateOptionsModalProps> = ({
                 isDark ? "text-white" : "text-dark-900"
               }`}
             >
-              Edit Template
+              {t("workout.editTemplate", "Edit Template")}
             </Text>
           </TouchableOpacity>
 
@@ -106,7 +108,7 @@ const TemplateOptionsModal: React.FC<TemplateOptionsModalProps> = ({
               color={isDark ? "#FF6B6B" : "#FF4757"}
             />
             <Text className="ml-3 font-medium text-red-500">
-              Delete Template
+              {t("workout.deleteTemplate", "Delete Template")}
             </Text>
           </TouchableOpacity>
 
@@ -121,7 +123,7 @@ const TemplateOptionsModal: React.FC<TemplateOptionsModalProps> = ({
                 isDark ? "text-white" : "text-dark-900"
               }`}
             >
-              Cancel
+              {t("workout.cancel", "Cancel")}
             </Text>
           </TouchableOpacity>
         </View>

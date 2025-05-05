@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Meal } from "@/types/diet";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -12,6 +13,7 @@ export default function DietScreen() {
   // Do not put hooks in conditional blocks
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("meals");
 
   // Create a safe version of handleMealPress that handles null or undefined values
@@ -44,31 +46,36 @@ export default function DietScreen() {
                 : "text-dark-900 text-2xl font-bold"
             }
           >
-            Diet Plan
+            {t("diet.dietPlan", "Diet Plan")}
           </Text>
         </View>
       </View>
 
       {/* Diet Tabs */}
       <View className="flex-row px-6 mb-5">
-        {["meals", "nutrition", "water", "supplements"].map((tab) => (
+        {[
+          { id: "meals", label: t("diet.meals", "Meals") },
+          { id: "nutrition", label: t("diet.nutrition", "Nutrition") },
+          { id: "water", label: t("diet.water", "Water") },
+          { id: "supplements", label: t("diet.supplements", "Supplements") },
+        ].map((tab) => (
           <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
+            key={tab.id}
+            onPress={() => setActiveTab(tab.id)}
             className={`mr-4 pb-2 ${
-              activeTab === tab ? "border-b-2 border-primary" : ""
+              activeTab === tab.id ? "border-b-2 border-primary" : ""
             }`}
           >
             <Text
               className={`text-base ${
-                activeTab === tab
+                activeTab === tab.id
                   ? "text-primary font-bold"
                   : isDark
                   ? "text-gray-400"
                   : "text-gray-500"
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -99,7 +106,7 @@ export default function DietScreen() {
                     isDark ? "text-gray-300 mb-3" : "text-gray-600 mb-3"
                   }
                 >
-                  Daily Nutrition Goals
+                  {t("diet.dailyNutritionGoals", "Daily Nutrition Goals")}
                 </Text>
                 <View className="flex-row justify-between mb-4">
                   <View className="items-center">
@@ -121,7 +128,7 @@ export default function DietScreen() {
                           : "text-gray-500 text-sm"
                       }
                     >
-                      Proteins
+                      {t("diet.proteins", "Proteins")}
                     </Text>
                     <Text
                       className={
@@ -153,7 +160,7 @@ export default function DietScreen() {
                           : "text-gray-500 text-sm"
                       }
                     >
-                      Carbs
+                      {t("diet.carbs", "Carbs")}
                     </Text>
                     <Text
                       className={
@@ -185,7 +192,7 @@ export default function DietScreen() {
                           : "text-gray-500 text-sm"
                       }
                     >
-                      Fats
+                      {t("diet.fats", "Fats")}
                     </Text>
                     <Text
                       className={
@@ -235,51 +242,62 @@ export default function DietScreen() {
                       : "text-dark-900 text-lg font-bold"
                   }
                 >
-                  Today's Meals
+                  {t("diet.todaysMeals", "Today's Meals")}
                 </Text>
                 <TouchableOpacity>
-                  <Text className="text-primary">Customize</Text>
+                  <Text className="text-primary">
+                    {t("diet.customize", "Customize")}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               {[
                 {
                   time: "7:30 AM",
-                  title: "Breakfast",
+                  title: t("diet.breakfast", "Breakfast"),
                   calories: 420,
-                  items: "Protein Smoothie, Eggs, Oatmeal",
+                  items: t(
+                    "diet.breakfastItems",
+                    "Protein Smoothie, Eggs, Oatmeal"
+                  ),
                   complete: true,
                   color: "#2196F3",
                 },
                 {
                   time: "10:30 AM",
-                  title: "Snack",
+                  title: t("diet.snack", "Snack"),
                   calories: 150,
-                  items: "Greek Yogurt, Almonds",
+                  items: t("diet.snackItems", "Greek Yogurt, Almonds"),
                   complete: true,
                   color: "#FF9800",
                 },
                 {
                   time: "1:00 PM",
-                  title: "Lunch",
+                  title: t("diet.lunch", "Lunch"),
                   calories: 620,
-                  items: "Chicken Breast, Brown Rice, Vegetables",
+                  items: t(
+                    "diet.lunchItems",
+                    "Chicken Breast, Brown Rice, Vegetables"
+                  ),
                   complete: false,
                   color: "#4CAF50",
                 },
                 {
                   time: "4:30 PM",
-                  title: "Pre-Workout",
+                  title: t("diet.preWorkout", "Pre-Workout"),
                   calories: 250,
-                  items: "Protein Bar, Banana",
+                  items: t("diet.preWorkoutItems", "Protein Bar, Banana"),
                   complete: false,
                   color: "#9C27B0",
                 },
                 {
                   time: "7:30 PM",
-                  title: "Dinner",
+                  title: t("diet.dinner", "Dinner"),
                   calories: 580,
-                  items: "Salmon, Sweet Potato, Broccoli",
+                  items: t(
+                    "diet.dinnerItems",
+                    "Salmon, Sweet Potato, Broccoli"
+                  ),
                   complete: false,
                   color: "#F44336",
                 },
@@ -345,7 +363,7 @@ export default function DietScreen() {
                               : "text-gray-500 font-normal"
                           }
                         >
-                          kcal
+                          {t("diet.kcal", "kcal")}
                         </Text>
                       </Text>
                       <Ionicons
@@ -384,7 +402,7 @@ export default function DietScreen() {
                             : "text-dark-900 text-sm"
                         }
                       >
-                        Mark as eaten
+                        {t("diet.markAsEaten", "Mark as eaten")}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -401,7 +419,10 @@ export default function DietScreen() {
                 isDark ? "text-white text-lg" : "text-dark-900 text-lg"
               }
             >
-              Nutrition tracking coming soon
+              {t(
+                "diet.nutritionTrackingComingSoon",
+                "Nutrition tracking coming soon"
+              )}
             </Text>
           </View>
         )}
@@ -413,7 +434,7 @@ export default function DietScreen() {
                 isDark ? "text-white text-lg" : "text-dark-900 text-lg"
               }
             >
-              Water tracking coming soon
+              {t("diet.waterTrackingComingSoon", "Water tracking coming soon")}
             </Text>
           </View>
         )}
@@ -425,7 +446,10 @@ export default function DietScreen() {
                 isDark ? "text-white text-lg" : "text-dark-900 text-lg"
               }
             >
-              Supplements tracking coming soon
+              {t(
+                "diet.supplementsTrackingComingSoon",
+                "Supplements tracking coming soon"
+              )}
             </Text>
           </View>
         )}

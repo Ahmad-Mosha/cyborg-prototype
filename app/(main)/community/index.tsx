@@ -1,31 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   View,
-  Text,
   ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
+import { useTheme } from "@/contexts/ThemeContext";
 
-import {
-  Post as PostType,
-  Challenge as ChallengeType,
-  Group as GroupType,
-  PostProps,
-  ChallengeCardProps,
-  GroupCardProps,
-} from "@/types/community";
+import { Post as PostType, Comment as CommentType } from "@/types/community";
+
+// Import our custom components
+import { Header, Post, NewPostInput } from "@/components/community";
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState("feed");
-
-  // Demo data for community feed
-  const posts: PostType[] = [
+  const { isDark, toggleTheme } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [posts, setPosts] = useState<PostType[]>([
     {
       id: "1",
       user: {
@@ -37,8 +30,35 @@ export default function CommunityScreen() {
       content:
         "Just smashed my deadlift PR! 💪 The Cyborg workout program is really working for me after just 3 weeks. Anyone else seeing rapid gains?",
       likes: 48,
-      comments: 12,
       isLiked: true,
+      comments: [
+        {
+          id: "c1",
+          user: {
+            name: "Mike Torres",
+            avatar: "https://via.placeholder.com/100/121212/BBFD00?text=MT",
+            isVerified: false,
+          },
+          time: "45m ago",
+          content: "Awesome! What's your new PR?",
+          likes: 5,
+          isLiked: false,
+          replies: [],
+        },
+        {
+          id: "c2",
+          user: {
+            name: "Emma Wilson",
+            avatar: "https://via.placeholder.com/100/121212/BBFD00?text=EW",
+            isVerified: true,
+          },
+          time: "30m ago",
+          content: "Same here! My squat PR went up by 15lbs in just a month.",
+          likes: 7,
+          isLiked: true,
+          replies: [],
+        },
+      ],
     },
     {
       id: "2",
@@ -51,8 +71,36 @@ export default function CommunityScreen() {
       content:
         "Morning HIIT session complete! Cyborg suggested adding mountain climbers and it destroyed me in the best way 🔥 Anyone have recommendations for post-workout recovery?",
       likes: 32,
-      comments: 8,
       isLiked: false,
+      comments: [
+        {
+          id: "c3",
+          user: {
+            name: "Sarah Johnson",
+            avatar: "https://via.placeholder.com/100/121212/BBFD00?text=SJ",
+            isVerified: true,
+          },
+          time: "2h ago",
+          content:
+            "I've been using the recovery protocol in the app - works wonders!",
+          likes: 4,
+          isLiked: false,
+          replies: [
+            {
+              id: "r1",
+              user: {
+                name: "Mike Torres",
+                avatar: "https://via.placeholder.com/100/121212/BBFD00?text=MT",
+                isVerified: false,
+              },
+              time: "1h ago",
+              content: "Thanks! I'll check it out right away.",
+              likes: 1,
+              isLiked: false,
+            },
+          ],
+        },
+      ],
     },
     {
       id: "3",
@@ -65,480 +113,302 @@ export default function CommunityScreen() {
       content:
         "Day 30 of the Cyborg Transformation Challenge! Before and after pics - can't believe the difference. The diet plan was key for me, especially the high protein breakfast options.",
       likes: 157,
-      comments: 43,
       isLiked: true,
-      image:
-        "https://via.placeholder.com/600/121212/BBFD00?text=Before+and+After",
+      comments: [
+        {
+          id: "c4",
+          user: {
+            name: "Sarah Johnson",
+            avatar: "https://via.placeholder.com/100/121212/BBFD00?text=SJ",
+            isVerified: true,
+          },
+          time: "4h ago",
+          content:
+            "Wow! The results are incredible. Which breakfast option was your favorite?",
+          likes: 12,
+          isLiked: true,
+          replies: [],
+        },
+      ],
     },
-  ];
+    {
+      id: "4",
+      user: {
+        name: "Emma Wilson",
+        avatar: "https://via.placeholder.com/100/121212/BBFD00?text=EW",
+        isVerified: true,
+      },
+      time: "5h ago",
+      content:
+        "Day 30 of the Cyborg Transformation Challenge! Before and after pics - can't believe the difference. The diet plan was key for me, especially the high protein breakfast options.",
+      likes: 157,
+      isLiked: true,
+      comments: [
+        {
+          id: "c4",
+          user: {
+            name: "Sarah Johnson",
+            avatar: "https://via.placeholder.com/100/121212/BBFD00?text=SJ",
+            isVerified: true,
+          },
+          time: "4h ago",
+          content:
+            "Wow! The results are incredible. Which breakfast option was your favorite?",
+          likes: 12,
+          isLiked: true,
+          replies: [],
+        },
+      ],
+    },
+    {
+      id: "5",
+      user: {
+        name: "Emma Wilson",
+        avatar: "https://via.placeholder.com/100/121212/BBFD00?text=EW",
+        isVerified: true,
+      },
+      time: "5h ago",
+      content:
+        "Day 30 of the Cyborg Transformation Challenge! Before and after pics - can't believe the difference. The diet plan was key for me, especially the high protein breakfast options.",
+      likes: 157,
+      isLiked: true,
+      comments: [
+        {
+          id: "c4",
+          user: {
+            name: "Sarah Johnson",
+            avatar: "https://via.placeholder.com/100/121212/BBFD00?text=SJ",
+            isVerified: true,
+          },
+          time: "4h ago",
+          content:
+            "Wow! The results are incredible. Which breakfast option was your favorite?",
+          likes: 12,
+          isLiked: true,
+          replies: [],
+        },
+      ],
+    },
+  ]);
 
-  // Demo data for challenges
-  const challenges: ChallengeType[] = [
-    {
-      id: "1",
-      title: "30-Day Arms Challenge",
-      participants: 2489,
-      daysLeft: 18,
-      progress: 40,
-      banner:
-        "https://via.placeholder.com/600/121212/BBFD00?text=Arms+Challenge",
-    },
-    {
-      id: "2",
-      title: "Summer Shred Challenge",
-      participants: 5671,
-      daysLeft: 45,
-      progress: 0,
-      status: "Not Started",
-      banner: "https://via.placeholder.com/600/121212/BBFD00?text=Summer+Shred",
-    },
-    {
-      id: "3",
-      title: "Core Crusher Challenge",
-      participants: 1892,
-      daysLeft: 0,
-      progress: 100,
-      status: "Completed",
-      banner: "https://via.placeholder.com/600/121212/BBFD00?text=Core+Crusher",
-    },
-  ];
+  // Handle liking a post - optimized with useCallback
+  const handleLikePost = useCallback((postId: string) => {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId) {
+          const wasLiked = post.isLiked;
+          return {
+            ...post,
+            isLiked: !wasLiked,
+            likes: wasLiked ? post.likes - 1 : post.likes + 1,
+          };
+        }
+        return post;
+      })
+    );
+  }, []);
 
-  // Demo data for groups
-  const groups: GroupType[] = [
-    {
-      id: "1",
-      name: "Morning Workout Crew",
-      members: 856,
-      posts: 45,
-      banner: "https://via.placeholder.com/600/121212/BBFD00?text=Morning+Crew",
-      isJoined: true,
+  // Handle liking a comment - optimized with useCallback
+  const handleLikeComment = useCallback(
+    (
+      postId: string,
+      commentId: string,
+      isReply: boolean = false,
+      parentCommentId?: string
+    ) => {
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (post.id === postId) {
+            if (isReply && parentCommentId) {
+              // Handle liking a reply
+              const updatedComments = post.comments.map((comment) => {
+                if (comment.id === parentCommentId && comment.replies) {
+                  return {
+                    ...comment,
+                    replies: comment.replies.map((reply) => {
+                      if (reply.id === commentId) {
+                        const wasLiked = reply.isLiked;
+                        return {
+                          ...reply,
+                          isLiked: !wasLiked,
+                          likes: wasLiked ? reply.likes - 1 : reply.likes + 1,
+                        };
+                      }
+                      return reply;
+                    }),
+                  };
+                }
+                return comment;
+              });
+              return { ...post, comments: updatedComments };
+            } else {
+              // Handle liking a top-level comment
+              const updatedComments = post.comments.map((comment) => {
+                if (comment.id === commentId) {
+                  const wasLiked = comment.isLiked;
+                  return {
+                    ...comment,
+                    isLiked: !wasLiked,
+                    likes: wasLiked ? comment.likes - 1 : comment.likes + 1,
+                  };
+                }
+                return comment;
+              });
+              return { ...post, comments: updatedComments };
+            }
+          }
+          return post;
+        })
+      );
     },
-    {
-      id: "2",
-      name: "Nutrition & Meal Prep",
-      members: 1243,
-      posts: 78,
-      banner: "https://via.placeholder.com/600/121212/BBFD00?text=Nutrition",
-      isJoined: false,
-    },
-    {
-      id: "3",
-      name: "Marathon Training",
-      members: 572,
-      posts: 32,
-      banner: "https://via.placeholder.com/600/121212/BBFD00?text=Marathon",
-      isJoined: true,
-    },
-  ];
+    []
+  );
 
-  // Post component
-  const Post = ({ post }: PostProps) => {
-    const [liked, setLiked] = useState(post.isLiked);
-    const [likes, setLikes] = useState(post.likes);
+  // Handle adding a comment to a post - optimized with useCallback
+  const handleAddComment = useCallback((postId: string, content: string) => {
+    if (!content.trim()) return;
 
-    const handleLike = () => {
-      if (liked) {
-        setLikes(likes - 1);
-      } else {
-        setLikes(likes + 1);
-      }
-      setLiked(!liked);
+    const newComment: CommentType = {
+      id: `c${Date.now()}`,
+      user: {
+        name: "Current User", // In a real app, this would be the logged-in user
+        avatar: "https://via.placeholder.com/100/121212/BBFD00?text=ME",
+        isVerified: false,
+      },
+      time: "Just now",
+      content,
+      likes: 0,
+      isLiked: false,
+      replies: [],
     };
 
-    return (
-      <Animated.View
-        entering={FadeInDown.delay(200).duration(500)}
-        className="bg-dark-800 rounded-3xl mb-4 p-4 border border-dark-700"
-      >
-        {/* Post header */}
-        <View className="flex-row items-center mb-3">
-          <Image
-            source={{ uri: post.user.avatar }}
-            className="w-10 h-10 rounded-full"
-          />
-          <View className="flex-1 ml-3">
-            <View className="flex-row items-center">
-              <Text className="text-white font-bold">{post.user.name}</Text>
-              {post.user.isVerified && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color="#BBFD00"
-                  className="ml-1"
-                />
-              )}
-            </View>
-            <Text className="text-gray-400 text-xs">{post.time}</Text>
-          </View>
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Post content */}
-        <Text className="text-white mb-3">{post.content}</Text>
-
-        {/* Post image if any */}
-        {post.image && (
-          <Image
-            source={{ uri: post.image }}
-            className="w-full h-40 rounded-2xl mb-3"
-            resizeMode="cover"
-          />
-        )}
-
-        {/* Post actions */}
-        <View className="flex-row items-center justify-between pt-2 border-t border-dark-700">
-          <TouchableOpacity
-            className="flex-row items-center"
-            onPress={handleLike}
-          >
-            <Ionicons
-              name={liked ? "heart" : "heart-outline"}
-              size={20}
-              color={liked ? "#F44336" : "white"}
-            />
-            <Text className="text-white ml-1">{likes}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex-row items-center">
-            <Ionicons name="chatbubble-outline" size={20} color="white" />
-            <Text className="text-white ml-1">{post.comments}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex-row items-center">
-            <Ionicons name="share-social-outline" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            comments: [...post.comments, newComment],
+          };
+        }
+        return post;
+      })
     );
-  };
+  }, []);
 
-  // Challenge card component
-  const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
-    const isCompleted = challenge.progress === 100;
-    const isNotStarted = challenge.progress === 0;
+  // Handle replying to a comment - optimized with useCallback
+  const handleReplyToComment = useCallback(
+    (postId: string, commentId: string, content: string) => {
+      if (!content.trim()) return;
 
-    return (
-      <TouchableOpacity
-        className="bg-dark-800 rounded-3xl mr-4 border border-dark-700 overflow-hidden"
-        style={{ width: 250 }}
-      >
-        <Image
-          source={{ uri: challenge.banner }}
-          className="w-full h-32"
-          resizeMode="cover"
-        />
+      const newReply: CommentType = {
+        id: `r${Date.now()}`,
+        user: {
+          name: "Current User", // In a real app, this would be the logged-in user
+          avatar: "https://via.placeholder.com/100/121212/BBFD00?text=ME",
+          isVerified: false,
+        },
+        time: "Just now",
+        content,
+        likes: 0,
+        isLiked: false,
+      };
 
-        <View className="p-4">
-          <Text className="text-white font-bold text-lg mb-1">
-            {challenge.title}
-          </Text>
-          <Text className="text-gray-400 mb-3">
-            {challenge.participants.toLocaleString()} participants
-          </Text>
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (post.id === postId) {
+            const updatedComments = post.comments.map((comment) => {
+              if (comment.id === commentId) {
+                return {
+                  ...comment,
+                  replies: [...(comment.replies || []), newReply],
+                };
+              }
+              return comment;
+            });
+            return { ...post, comments: updatedComments };
+          }
+          return post;
+        })
+      );
+    },
+    []
+  );
 
-          {isNotStarted && (
-            <TouchableOpacity className="bg-primary py-2 rounded-full">
-              <Text className="text-dark-900 font-bold text-center">
-                Join Challenge
-              </Text>
-            </TouchableOpacity>
-          )}
+  // Combined handler for post interactions
+  const handlePostInteraction = useCallback(
+    (
+      postId: string,
+      commentId: string | null = null,
+      content: string | null = null
+    ) => {
+      if (commentId === null && content === null) {
+        // Like post
+        handleLikePost(postId);
+      } else if (commentId && content === null) {
+        // Like comment
+        handleLikeComment(postId, commentId);
+      } else if (commentId && content) {
+        // Reply to comment
+        handleReplyToComment(postId, commentId, content);
+      } else if (content) {
+        // Add comment to post
+        handleAddComment(postId, content);
+      }
+    },
+    [handleLikePost, handleLikeComment, handleReplyToComment, handleAddComment]
+  );
 
-          {!isNotStarted && !isCompleted && (
-            <View>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-white">
-                  {challenge.progress}% Complete
-                </Text>
-                <Text className="text-gray-400">
-                  {challenge.daysLeft} days left
-                </Text>
-              </View>
+  // Handle adding a new post - optimized with useCallback
+  const handleAddPost = useCallback((text: string) => {
+    const newPost: PostType = {
+      id: `p${Date.now()}`,
+      user: {
+        name: "Current User", // In a real app, this would be the logged-in user
+        avatar: "https://via.placeholder.com/100/121212/BBFD00?text=ME",
+        isVerified: false,
+      },
+      time: "Just now",
+      content: text,
+      likes: 0,
+      isLiked: false,
+      comments: [],
+    };
 
-              <View className="h-2 bg-dark-700 rounded-full overflow-hidden">
-                <View
-                  className="h-full bg-primary"
-                  style={{ width: `${challenge.progress}%` }}
-                />
-              </View>
-            </View>
-          )}
+    setPosts((prev) => [newPost, ...prev]);
+  }, []);
 
-          {isCompleted && (
-            <View className="bg-dark-700 py-2 rounded-full flex-row justify-center items-center">
-              <Ionicons name="checkmark-circle" size={16} color="#BBFD00" />
-              <Text className="text-white ml-1 font-bold text-center">
-                Challenge Completed
-              </Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  // Group card component
-  const GroupCard = ({ group }: GroupCardProps) => {
-    return (
-      <TouchableOpacity
-        className="bg-dark-800 rounded-3xl mr-4 border border-dark-700 overflow-hidden"
-        style={{ width: 250 }}
-      >
-        <Image
-          source={{ uri: group.banner }}
-          className="w-full h-32"
-          resizeMode="cover"
-        />
-
-        <View className="p-4">
-          <Text className="text-white font-bold text-lg mb-1">
-            {group.name}
-          </Text>
-          <View className="flex-row justify-between mb-3">
-            <Text className="text-gray-400">{group.members} members</Text>
-            <Text className="text-gray-400">{group.posts} posts</Text>
-          </View>
-
-          {group.isJoined ? (
-            <TouchableOpacity className="bg-dark-700 py-2 rounded-full">
-              <Text className="text-white font-bold text-center">Joined</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity className="bg-primary py-2 rounded-full">
-              <Text className="text-dark-900 font-bold text-center">
-                Join Group
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  // Memoized posts list to prevent unnecessary re-renders
+  const renderedPosts = useMemo(() => {
+    return posts.map((post) => (
+      <Post key={post.id} post={post} onLike={handlePostInteraction} />
+    ));
+  }, [posts, handlePostInteraction]);
 
   return (
-    <View className="flex-1 bg-dark-900">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+      style={{
+        backgroundColor: isDark ? "#121212" : "#F5F5F5",
+      }}
+    >
       {/* Header */}
-      <View style={{ paddingTop: insets.top + 30 }} className="px-6 pt-6 pb-4">
-        <View className="flex-row justify-between items-center">
-          <Text className="text-white text-2xl font-bold">Community</Text>
-          <View className="flex-row">
-            <TouchableOpacity className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center mr-2">
-              <Ionicons name="search" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity className="w-10 h-10 rounded-full bg-dark-800 items-center justify-center">
-              <Ionicons name="notifications-outline" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* Tabs */}
-      <View className="flex-row px-6 mb-5">
-        {["feed", "challenges", "groups", "events"].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            className={`mr-4 pb-2 ${
-              activeTab === tab ? "border-b-2 border-primary" : ""
-            }`}
-          >
-            <Text
-              className={`text-base ${
-                activeTab === tab ? "text-primary font-bold" : "text-gray-400"
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <Header toggleTheme={toggleTheme} />
 
       <ScrollView
+        ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 120,
+          paddingBottom: insets.bottom + 80,
+          paddingHorizontal: 16,
         }}
       >
-        {activeTab === "feed" && (
-          <View className="px-6">
-            {/* New post input */}
-            <Animated.View
-              entering={FadeInDown.delay(100).duration(500)}
-              className="bg-dark-800 rounded-3xl mb-6 p-4 border border-dark-700"
-            >
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-full bg-dark-700 items-center justify-center">
-                  <Ionicons name="person" size={18} color="#A0A0A0" />
-                </View>
-                <TouchableOpacity className="flex-1 bg-dark-700 rounded-full ml-3 px-4 py-3">
-                  <Text className="text-gray-400">
-                    Share your fitness journey...
-                  </Text>
-                </TouchableOpacity>
-              </View>
+        {/* New post input */}
+        <NewPostInput onAddPost={handleAddPost} />
 
-              <View className="flex-row justify-around mt-4">
-                <TouchableOpacity className="flex-row items-center">
-                  <Ionicons name="image-outline" size={20} color="#A0A0A0" />
-                  <Text className="text-gray-400 ml-1">Photo</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity className="flex-row items-center">
-                  <Ionicons name="videocam-outline" size={20} color="#A0A0A0" />
-                  <Text className="text-gray-400 ml-1">Video</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity className="flex-row items-center">
-                  <Ionicons name="fitness-outline" size={20} color="#A0A0A0" />
-                  <Text className="text-gray-400 ml-1">Workout</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-
-            {/* Feed posts */}
-            {posts.map((post) => (
-              <Post key={post.id} post={post} />
-            ))}
-          </View>
-        )}
-
-        {activeTab === "challenges" && (
-          <View>
-            {/* Featured challenge */}
-            <Animated.View
-              entering={FadeIn.delay(100).duration(500)}
-              className="px-6 mb-6"
-            >
-              <Text className="text-white text-lg font-bold mb-4">
-                Featured Challenge
-              </Text>
-              <TouchableOpacity className="bg-dark-800 rounded-3xl border border-dark-700 overflow-hidden">
-                <Image
-                  source={{
-                    uri: "https://via.placeholder.com/600/121212/BBFD00?text=90+Day+Transformation",
-                  }}
-                  className="w-full h-40"
-                  resizeMode="cover"
-                />
-
-                <View className="p-5">
-                  <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-white font-bold text-xl">
-                      90-Day Transformation
-                    </Text>
-                    <View className="bg-primary/20 px-3 py-1 rounded-full">
-                      <Text className="text-primary font-bold">
-                        10k+ participants
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Text className="text-gray-400 mb-4">
-                    Complete full-body transformation with guided workouts and
-                    nutrition plans. Coached by professional athletes.
-                  </Text>
-
-                  <TouchableOpacity className="bg-primary py-3 rounded-full">
-                    <Text className="text-dark-900 font-bold text-center">
-                      Join Challenge
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-
-            {/* Active challenges */}
-            <View className="mb-6">
-              <View className="px-6 mb-4 flex-row justify-between items-center">
-                <Text className="text-white text-lg font-bold">
-                  Active Challenges
-                </Text>
-                <TouchableOpacity>
-                  <Text className="text-primary">View All</Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingLeft: 24, paddingRight: 16 }}
-              >
-                {challenges.map((challenge) => (
-                  <ChallengeCard key={challenge.id} challenge={challenge} />
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-        )}
-
-        {activeTab === "groups" && (
-          <View>
-            {/* Search groups */}
-            <View className="px-6 mb-6">
-              <TextInput
-                className="bg-dark-800 text-white px-4 py-3 rounded-full"
-                placeholder="Search groups..."
-                placeholderTextColor="#A0A0A0"
-              />
-            </View>
-
-            {/* Recommended groups */}
-            <View className="mb-6">
-              <View className="px-6 mb-4">
-                <Text className="text-white text-lg font-bold">
-                  Recommended Groups
-                </Text>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingLeft: 24, paddingRight: 16 }}
-              >
-                {groups.map((group) => (
-                  <GroupCard key={group.id} group={group} />
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Your groups */}
-            <View>
-              <View className="px-6 mb-4">
-                <Text className="text-white text-lg font-bold">
-                  Your Groups
-                </Text>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingLeft: 24, paddingRight: 16 }}
-              >
-                {groups
-                  .filter((g) => g.isJoined)
-                  .map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))}
-              </ScrollView>
-            </View>
-          </View>
-        )}
-
-        {activeTab === "events" && (
-          <View className="px-6 items-center justify-center mt-10">
-            <Ionicons name="calendar-outline" size={60} color="#A0A0A0" />
-            <Text className="text-white text-lg mt-4 text-center">
-              Events coming soon!
-            </Text>
-            <Text className="text-gray-400 text-center mt-2">
-              We're working on bringing you fitness events, competitions, and
-              meetups in your area.
-            </Text>
-          </View>
-        )}
+        {/* Feed posts */}
+        {renderedPosts}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

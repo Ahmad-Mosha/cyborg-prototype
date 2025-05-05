@@ -9,6 +9,7 @@ import {
   NativeScrollEvent,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -58,6 +59,7 @@ export const TodayOverview = ({
   isDark = true,
   onNavigate,
 }: TodayOverviewProps) => {
+  const { t } = useTranslation();
   const scrollX = useSharedValue(0);
   const [activeWidgetIndex, setActiveWidgetIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -141,7 +143,7 @@ export const TodayOverview = ({
               : "text-dark-900 text-lg font-bold"
           }
         >
-          Today's Overview
+          {t("dashboard.todayOverview", "Today's Overview")}
         </Text>
         <View className="flex-row">
           {Array.from({ length: totalWidgets }).map((_, i) => (
@@ -208,7 +210,8 @@ export const TodayOverview = ({
                   {workouts[0].name}
                 </Text>
                 <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                  {workouts[0].duration} · {workouts[0].exercises} exercises
+                  {workouts[0].duration} · {workouts[0].exercises}{" "}
+                  {t("workout.exercises", "exercises")}
                 </Text>
               </View>
             </View>
@@ -242,7 +245,9 @@ export const TodayOverview = ({
 
             <TouchableOpacity className="bg-primary px-4 py-2 rounded-full flex-row items-center">
               <Ionicons name="play" size={16} color="#121212" />
-              <Text className="text-dark-900 font-bold ml-1">Start</Text>
+              <Text className="text-dark-900 font-bold ml-1">
+                {t("workout.start", "Start")}
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -271,10 +276,11 @@ export const TodayOverview = ({
                       : "text-dark-900 font-bold text-lg"
                   }
                 >
-                  Daily Calories
+                  {t("diet.dailyCalories", "Daily Calories")}
                 </Text>
                 <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                  {caloriesData.percentage}% of daily goal
+                  {caloriesData.percentage}%{" "}
+                  {t("diet.ofDailyGoal", "of daily goal")}
                 </Text>
               </View>
             </View>
@@ -297,7 +303,7 @@ export const TodayOverview = ({
           <View className="flex-row justify-between">
             <View>
               <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                Consumed
+                {t("diet.consumed", "Consumed")}
               </Text>
               <Text
                 className={
@@ -312,7 +318,7 @@ export const TodayOverview = ({
 
             <View>
               <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                Remaining
+                {t("diet.remaining", "Remaining")}
               </Text>
               <Text
                 className={
@@ -327,7 +333,7 @@ export const TodayOverview = ({
 
             <View>
               <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                Goal
+                {t("diet.goal", "Goal")}
               </Text>
               <Text
                 className={
@@ -365,10 +371,11 @@ export const TodayOverview = ({
                       : "text-dark-900 font-bold text-lg"
                   }
                 >
-                  Water Intake
+                  {t("diet.waterIntake", "Water Intake")}
                 </Text>
                 <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                  {waterData.consumed} of {waterData.goal} glasses
+                  {waterData.consumed} {t("diet.of", "of")} {waterData.goal}{" "}
+                  {t("diet.glasses", "glasses")}
                 </Text>
               </View>
             </View>
@@ -395,7 +402,7 @@ export const TodayOverview = ({
           <View className="flex-row justify-between items-center">
             <View>
               <Text className={isDark ? "text-gray-400" : "text-gray-600"}>
-                Progress
+                {t("common.progress", "Progress")}
               </Text>
               <Text
                 className={

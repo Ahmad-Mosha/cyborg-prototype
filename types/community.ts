@@ -4,15 +4,25 @@ export interface User {
   isVerified: boolean;
 }
 
+export interface Comment {
+  id: string;
+  user: User;
+  time: string;
+  content: string;
+  likes: number;
+  isLiked: boolean;
+  replies?: Comment[];
+}
+
 export interface Post {
   id: string;
   user: User;
   time: string;
   content: string;
   likes: number;
-  comments: number;
   isLiked: boolean;
   image?: string;
+  comments: Comment[];
 }
 
 export interface Challenge {
@@ -37,6 +47,22 @@ export interface Group {
 // Props interfaces for components
 export interface PostProps {
   post: Post;
+  onLike: (
+    postId: string,
+    commentId?: string | null,
+    content?: string | null
+  ) => void;
+}
+
+export interface CommentProps {
+  comment: Comment;
+  postId: string;
+  onLike: (
+    commentId: string,
+    isReply?: boolean,
+    parentCommentId?: string
+  ) => void;
+  onReply: (commentId: string, content: string) => void;
 }
 
 export interface ChallengeCardProps {
