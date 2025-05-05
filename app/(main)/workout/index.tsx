@@ -105,7 +105,6 @@ const WorkoutScreen = () => {
   const [newTemplateName, setNewTemplateName] = useState("");
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
 
-  // New state for create template modal
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
   const [newTemplate, setNewTemplate] = useState<NewTemplate>({
     name: "",
