@@ -61,15 +61,18 @@ export const TodayOverview = ({
   const scrollX = useSharedValue(0);
   const [activeWidgetIndex, setActiveWidgetIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
-  
+
   // Navigation handler that won't cause errors
-  const handleNavigation = useCallback((route: string) => {
-    if (onNavigate) {
-      onNavigate(route);
-    } else {
-      console.log("Navigation not available for route:", route);
-    }
-  }, [onNavigate]);
+  const handleNavigation = useCallback(
+    (route: string) => {
+      if (onNavigate) {
+        onNavigate(route);
+      } else {
+        console.log("Navigation not available for route:", route);
+      }
+    },
+    [onNavigate]
+  );
 
   // Configuration
   const totalWidgets = 3;
