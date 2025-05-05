@@ -6,16 +6,19 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import foodService from "@/api/foodService";
 import { useTabBar } from "@/contexts/TabBarContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Nutrient } from "@/types/diet";
+import { Nutrient, NutrientInfo } from "@/types/diet";
+import BarcodeUtil from "@/utils/BarcodeUtil";
 
 export default function FoodSearchScreen() {
   const insets = useSafeAreaInsets();
@@ -177,40 +180,52 @@ export default function FoodSearchScreen() {
     setSearchResults([]); // Clear previous results
 
     try {
-      const result = await foodService.getProductByBarcode(data);
+      // Use our BarcodeUtil instead of the backend service
+      const result = await BarcodeUtil.getProductByBarcode(data);
       if (result && result.id) {
+        // Find the nutrients from the detailed nutrition data
+        const getValueByName = (name: string): number => {
+          const nutrient = result.nutrition?.nutrients?.find(
+            (n: NutrientInfo) => n.name === name
+          );
+          return nutrient ? nutrient.amount : 0;
+        };
+
         // Use the direct properties from BarcodeProductResult structure
         const formattedResult = {
           id: result.id || parseInt(data), // Use barcode data as fallback ID
           name: result.title || "Unknown Product",
           brand: result.breadcrumbs?.[0] || "N/A", // Use first breadcrumb as brand
-          calories:
-            result.nutrition?.nutrients?.find(
-              (n: Nutrient) => n.name.toLowerCase() === "calories"
-            )?.amount || 0,
-          protein:
-            result.nutrition?.nutrients?.find(
-              (n: Nutrient) => n.name.toLowerCase() === "protein"
-            )?.amount || 0,
-          carbs:
-            result.nutrition?.nutrients?.find(
-              (n: Nutrient) => n.name.toLowerCase() === "carbohydrates"
-            )?.amount || 0,
-          fats:
-            result.nutrition?.nutrients?.find(
-              (n: Nutrient) => n.name.toLowerCase() === "fat"
-            )?.amount || 0,
+          calories: getValueByName("Calories"),
+          protein: getValueByName("Protein"),
+          carbs: getValueByName("Carbohydrates"),
+          fats: getValueByName("Fat"),
+          saturatedFat: getValueByName("Saturated Fat"),
+          transFat: getValueByName("Trans Fat"),
+          cholesterol: getValueByName("Cholesterol"),
+          sugars: getValueByName("Sugars"),
+          fiber: getValueByName("Fiber"),
+          salt: getValueByName("Salt"),
           serving: `${result.servings?.size || 0}${
             result.servings?.unit || "g"
           }`,
+          // Add the complete nutrition object for detailed view
+          completeNutrition: result.nutrition,
         };
         setSearchResults([formattedResult]);
+        await AsyncStorage.setItem(
+          "scannedBarcodeResult",
+          JSON.stringify(formattedResult)
+        );
       } else {
-        alert("Barcode not found or product details unavailable.");
+        // This shouldn't happen with our implementation since we always provide fallback data
+        alert("Failed to process barcode data. Please try again.");
       }
     } catch (error) {
-      console.error("Error fetching barcode product:", error);
-      alert("Failed to fetch product details for the scanned barcode.");
+      console.error("Error processing barcode:", error);
+      alert(
+        "An error occurred while processing the barcode. Please try again."
+      );
     } finally {
       setIsSearching(false); // Hide loading indicator
     }
@@ -531,6 +546,16 @@ export default function FoodSearchScreen() {
                             className={isDark ? "text-white" : "text-dark-900"}
                           >
                             {food.calories} kcal
+                          </Text>
+                          <Text
+                            className={
+                              isDark
+                                ? "text-gray-400 text-xs"
+                                : "text-gray-500 text-xs"
+                            }
+                          >
+                            P: {food.protein}g | C: {food.carbs}g | F:{" "}
+                            {food.fats}g
                           </Text>
                         </View>
                       </View>
