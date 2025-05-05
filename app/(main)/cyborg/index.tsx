@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useRouter } from "expo-router";
 
 import { MessageType } from "@/types/cyborg";
 import chatService from "@/api/chatService";
@@ -24,6 +25,7 @@ const { width } = Dimensions.get("window");
 
 export default function CyborgScreen() {
   const { isDark } = useTheme();
+  const router = useRouter();
   const [question, setQuestion] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentConversation, setCurrentConversation] =
@@ -162,78 +164,10 @@ export default function CyborgScreen() {
     }
   };
 
-  const handleVideoUpload = async () => {
-    try {
-      // Request permission for accessing media library
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== "granted") {
-        showAlert(
-          "Permission Required",
-          "Please allow access to your media library to upload videos.",
-          [],
-          "information-circle",
-          "#2196F3"
-        );
-        return;
-      }
-
-      // Launch video picker
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        quality: 1,
-        allowsEditing: true,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const selectedVideo = result.assets[0];
-
-        // Add a user message indicating video upload
-        const newUserMessage = chatService.createUserMessage(
-          "I've uploaded a video for analysis."
-        );
-        setMessages((prev) => [...prev, newUserMessage]);
-        setIsProcessing(true);
-
-        try {
-          // Process the video using chatService
-          const { conversation, aiMessage } =
-            await chatService.processVideoUpload(currentConversation?.id);
-
-          // Update current conversation if needed
-          if (!currentConversation?.id) {
-            setCurrentConversation(conversation);
-          }
-
-          // Add AI analysis response to messages
-          setMessages((prev) => [...prev, aiMessage]);
-        } catch (error) {
-          console.error("Error processing video:", error);
-          showAlert(
-            "Video Processing Error",
-            "Failed to process your video. Please try again.",
-            [],
-            "alert-circle",
-            "#FF4757"
-          );
-
-          // Remove the last user message if API call fails
-          setMessages((prev) => prev.slice(0, -1));
-        } finally {
-          setIsProcessing(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error uploading video:", error);
-      showAlert(
-        "Upload Failed",
-        "There was a problem uploading your video. Please try again.",
-        [],
-        "alert-circle",
-        "#FF4757"
-      );
-    }
+  // Modified to navigate to video analysis screen with a more compatible approach for Expo Router
+  const handleVideoUpload = () => {
+    // Using the full path with "/" prefix for Expo Router
+    router.navigate("/video-analysis");
   };
 
   // Create a new conversation
