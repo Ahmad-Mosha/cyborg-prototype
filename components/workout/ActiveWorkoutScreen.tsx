@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActiveWorkout } from "@/types/workout";
+import { ActiveWorkout, WeightUnit } from "@/types/workout";
 import WorkoutTimer from "./WorkoutTimer";
 import WorkoutExerciseItem from "./WorkoutExerciseItem";
 import ExerciseSelectionModal from "./ExerciseSelectionModal";
@@ -31,6 +31,20 @@ interface ActiveWorkoutScreenProps {
     value: number
   ) => void;
   onToggleSetComplete: (exerciseIndex: number, setIndex: number) => void;
+  onDeleteSet: (exerciseIndex: number, setIndex: number) => void;
+  onDeleteExercise: (exerciseIndex: number) => void;
+  onSetTypeChange: (
+    exerciseIndex: number,
+    setIndex: number,
+    type: string
+  ) => void;
+  onSetRestTimeChange: (
+    exerciseIndex: number,
+    setIndex: number,
+    time: number
+  ) => void;
+  onToggleWeightUnit: () => void;
+  onChangeDefaultRestTime: (time: number) => void;
   showExerciseModal: boolean;
   setShowExerciseModal: (show: boolean) => void;
   exercises: any[];
@@ -51,6 +65,12 @@ const ActiveWorkoutScreen: React.FC<ActiveWorkoutScreenProps> = ({
   onAddSet,
   onUpdateSet,
   onToggleSetComplete,
+  onDeleteSet,
+  onDeleteExercise,
+  onSetTypeChange,
+  onSetRestTimeChange,
+  onToggleWeightUnit,
+  onChangeDefaultRestTime,
   showExerciseModal,
   setShowExerciseModal,
   exercises,
@@ -62,6 +82,11 @@ const ActiveWorkoutScreen: React.FC<ActiveWorkoutScreenProps> = ({
 }) => {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
+
+  const handleStartRestTimer = (time: number) => {
+    // This function is passed to WorkoutExerciseItem
+    // The rest timer is now handled directly in the WorkoutExerciseItem component
+  };
 
   return (
     <View
@@ -105,7 +130,8 @@ const ActiveWorkoutScreen: React.FC<ActiveWorkoutScreenProps> = ({
               color={isDark ? "white" : "#121212"}
             />
           </TouchableOpacity>
-          <WorkoutTimer startTime={workout.startTime} />
+          {/* Main workout timer (not rest timer) */}
+          <WorkoutTimer startTime={workout.startTime} restMode={false} />
           <TouchableOpacity
             className="bg-primary/20 rounded-full px-4 py-2"
             onPress={onFinishWorkout}
@@ -127,12 +153,11 @@ const ActiveWorkoutScreen: React.FC<ActiveWorkoutScreenProps> = ({
               ? "bg-dark-800 rounded-full p-2"
               : "bg-light-200 rounded-full p-2"
           }
+          onPress={onToggleWeightUnit}
         >
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={22}
-            color={isDark ? "white" : "#121212"}
-          />
+          <Text className="font-bold">
+            {workout.weightUnit || WeightUnit.Kg}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -148,6 +173,13 @@ const ActiveWorkoutScreen: React.FC<ActiveWorkoutScreenProps> = ({
             onAddSet={onAddSet}
             onUpdateSet={onUpdateSet}
             onToggleSetComplete={onToggleSetComplete}
+            onDeleteSet={onDeleteSet}
+            onDeleteExercise={onDeleteExercise}
+            onSetTypeChange={onSetTypeChange}
+            onSetRestTimeChange={onSetRestTimeChange}
+            weightUnit={workout.weightUnit || WeightUnit.Kg}
+            onToggleWeightUnit={onToggleWeightUnit}
+            onStartRestTimer={handleStartRestTimer}
           />
         ))}
       </ScrollView>

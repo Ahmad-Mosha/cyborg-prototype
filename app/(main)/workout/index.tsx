@@ -8,6 +8,8 @@ import {
   NewTemplate,
   WorkoutExercise,
   WorkoutTemplate,
+  WeightUnit,
+  SetType,
 } from "@/types/workout";
 import { WorkoutHomeScreen, ActiveWorkoutScreen } from "@/components/workout";
 
@@ -96,6 +98,8 @@ const WorkoutScreen = () => {
     exercises: [],
     startTime: null,
     isActive: false,
+    weightUnit: WeightUnit.Kg, // Default to kg
+    defaultRestTime: 120, // Default rest time 2 minutes
   });
 
   // Modal states
@@ -145,6 +149,8 @@ const WorkoutScreen = () => {
       exercises: [],
       startTime: new Date(),
       isActive: true,
+      weightUnit: WeightUnit.Kg,
+      defaultRestTime: 120,
     });
   };
 
@@ -158,7 +164,14 @@ const WorkoutScreen = () => {
       (exercise) => ({
         exercise,
         sets: [
-          { id: `set-${Date.now()}-1`, weight: 0, reps: 0, completed: false },
+          {
+            id: `set-${Date.now()}-1`,
+            weight: 0,
+            reps: 0,
+            completed: false,
+            type: SetType.Regular,
+            restTime: 120,
+          },
         ],
         isSuperSet: false,
       })
@@ -169,6 +182,8 @@ const WorkoutScreen = () => {
       exercises: workoutExercises,
       startTime: new Date(),
       isActive: true,
+      weightUnit: WeightUnit.Kg,
+      defaultRestTime: 120,
     });
   };
 
@@ -213,6 +228,8 @@ const WorkoutScreen = () => {
               weight: 0,
               reps: 0,
               completed: false,
+              type: SetType.Regular,
+              restTime: activeWorkout.defaultRestTime,
             },
           ],
           isSuperSet,
@@ -329,6 +346,8 @@ const WorkoutScreen = () => {
       weight: 0,
       reps: 0,
       completed: false,
+      type: SetType.Regular,
+      restTime: activeWorkout.defaultRestTime,
     });
     setActiveWorkout({
       ...activeWorkout,
@@ -362,6 +381,79 @@ const WorkoutScreen = () => {
     });
   };
 
+  // Handle deleting a set
+  const handleDeleteSet = (exerciseIndex: number, setIndex: number) => {
+    const newExercises = [...activeWorkout.exercises];
+    // Don't delete if it's the only set
+    if (newExercises[exerciseIndex].sets.length <= 1) {
+      showAlert("Cannot Delete", "An exercise must have at least one set.");
+      return;
+    }
+
+    newExercises[exerciseIndex].sets.splice(setIndex, 1);
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Handle deleting an entire exercise
+  const handleDeleteExercise = (exerciseIndex: number) => {
+    const newExercises = [...activeWorkout.exercises];
+    newExercises.splice(exerciseIndex, 1);
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Handle set type change
+  const handleSetTypeChange = (
+    exerciseIndex: number,
+    setIndex: number,
+    type: string
+  ) => {
+    const newExercises = [...activeWorkout.exercises];
+    newExercises[exerciseIndex].sets[setIndex].type = type;
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Handle set rest time change
+  const handleSetRestTimeChange = (
+    exerciseIndex: number,
+    setIndex: number,
+    time: number
+  ) => {
+    const newExercises = [...activeWorkout.exercises];
+    newExercises[exerciseIndex].sets[setIndex].restTime = time;
+    setActiveWorkout({
+      ...activeWorkout,
+      exercises: newExercises,
+    });
+  };
+
+  // Handle toggling weight unit between kg and lbs
+  const handleToggleWeightUnit = () => {
+    setActiveWorkout({
+      ...activeWorkout,
+      weightUnit:
+        activeWorkout.weightUnit === WeightUnit.Kg
+          ? WeightUnit.Lbs
+          : WeightUnit.Kg,
+    });
+  };
+
+  // Handle changing default rest time
+  const handleChangeDefaultRestTime = (time: number) => {
+    setActiveWorkout({
+      ...activeWorkout,
+      defaultRestTime: time,
+    });
+  };
+
   // Finish current workout
   const finishWorkout = () => {
     confirmAlert(
@@ -375,6 +467,8 @@ const WorkoutScreen = () => {
           exercises: [],
           startTime: null,
           isActive: false,
+          weightUnit: WeightUnit.Kg,
+          defaultRestTime: 120,
         });
       }
     );
@@ -393,6 +487,8 @@ const WorkoutScreen = () => {
           exercises: [],
           startTime: null,
           isActive: false,
+          weightUnit: WeightUnit.Kg,
+          defaultRestTime: 120,
         });
       },
       undefined,
@@ -470,6 +566,12 @@ const WorkoutScreen = () => {
         onAddSet={handleAddSet}
         onUpdateSet={handleUpdateSet}
         onToggleSetComplete={handleToggleSetComplete}
+        onDeleteSet={handleDeleteSet}
+        onDeleteExercise={handleDeleteExercise}
+        onSetTypeChange={handleSetTypeChange}
+        onSetRestTimeChange={handleSetRestTimeChange}
+        onToggleWeightUnit={handleToggleWeightUnit}
+        onChangeDefaultRestTime={handleChangeDefaultRestTime}
         showExerciseModal={showExerciseModal}
         setShowExerciseModal={setShowExerciseModal}
         exercises={filteredExercises}

@@ -47,6 +47,22 @@ export interface ExerciseSet {
   weight: number;
   reps: number;
   completed: boolean;
+  type?: "regular" | "warm_up" | "drop_set" | "failure";
+  restTime?: number; // Rest time in seconds
+}
+
+// Add enum for set types
+export enum SetType {
+  Regular = "regular",
+  WarmUp = "warm_up",
+  DropSet = "drop_set",
+  Failure = "failure",
+}
+
+// Add enum for weight units
+export enum WeightUnit {
+  Kg = "kg",
+  Lbs = "lbs",
 }
 
 export interface WorkoutExercise {
@@ -69,6 +85,8 @@ export interface ActiveWorkout {
   exercises: WorkoutExercise[];
   startTime: Date | null;
   isActive: boolean;
+  weightUnit: WeightUnit; // Added weight unit preference
+  defaultRestTime: number; // Default rest time in seconds
 }
 
 export interface NewTemplate {
