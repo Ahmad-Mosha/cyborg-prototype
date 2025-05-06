@@ -406,6 +406,15 @@ export default function MainLayout() {
             ),
           }}
         />
+
+        {/* Add video-analysis route - make it hidden from tab bar */}
+        <Tabs.Screen
+          name="video-analysis/index"
+          options={{
+            title: "Video Analysis",
+            href: null, // Hide from URL matching
+          }}
+        />
       </Tabs>
 
       {/* Render SidebarMenu after Tabs to ensure it appears on top */}

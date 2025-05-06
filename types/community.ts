@@ -16,6 +16,7 @@ export interface Comment {
 
 export interface Post {
   id: string;
+  title: string;
   user: User;
   time: string;
   content: string;
@@ -72,3 +73,5 @@ export interface ChallengeCardProps {
 export interface GroupCardProps {
   group: Group;
 }
+
+export type PostData = Pick<Post, "title" | "content">

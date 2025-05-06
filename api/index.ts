@@ -5,3 +5,4 @@ import chatService from "./chatService";
 import foodService from "./foodService";
 
 export { api, authService, userDataService, chatService, foodService };
+export { default as videoAnalysisService } from "./videoAnalysisService";
