@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, SHADOWS } from "@/utils/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
+import { authService } from "@/api/authService";
 import { useTabBar } from "@/contexts/TabBarContext";
 import { destructiveAlert } from "@/utils/AlertUtil";
 
@@ -38,18 +39,28 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ isOpen, onClose }) => {
     onClose();
     setTimeout(() => router.push(path), 300);
   };
-
   // Handle logout with confirmation
   const handleLogout = () => {
     destructiveAlert(
       "Logout",
       "Are you sure you want to logout?",
-      () => {
-        onClose();
-        // Short delay to allow menu closing animation
-        setTimeout(() => {
-          router.replace("/(auth)");
-        }, 300);
+      async () => {
+        try {
+          // Call the logout service to clear stored auth data
+          await authService.logout();
+          onClose();
+          // Short delay to allow menu closing animation
+          setTimeout(() => {
+            router.replace("/(auth)");
+          }, 300);
+        } catch (error) {
+          console.error("Logout error:", error);
+          // Even if logout fails, still navigate to auth screen
+          onClose();
+          setTimeout(() => {
+            router.replace("/(auth)");
+          }, 300);
+        }
       },
       undefined,
       "Logout",

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronRight, ArrowRight } from "lucide-react-native";
+import { authService } from "@/api/authService";
 
 const { width, height } = Dimensions.get("window");
 
@@ -49,8 +51,71 @@ const slides: Slide[] = [
 
 export default function WelcomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const insets = useSafeAreaInsets();
   const flatListRef = useRef<FlatList>(null);
+
+  // Check if user is already authenticated when app starts
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const isAuthenticated = await authService.isAuthenticated();
+        
+        if (isAuthenticated) {
+          // Validate if the token is still valid
+          const isTokenValid = await authService.validateToken();
+          
+          if (isTokenValid) {
+            // Check if user has completed onboarding
+            try {
+              const { userDataService } = await import("@/api/userDataService");
+              const hasCompletedOnboarding = await userDataService.hasCompletedOnboarding();
+              
+              if (hasCompletedOnboarding) {
+                // User is logged in and has completed onboarding
+                router.replace("/(main)/dashboard");
+              } else {
+                // User is logged in but hasn't completed onboarding
+                router.replace("/(onboarding)");
+              }
+            } catch (error: any) {
+              console.error("Error checking onboarding status:", error);
+              
+              // If token is invalid (401), show welcome screen
+              if (error.response?.status === 401) {
+                setIsCheckingAuth(false);
+              } else {
+                // For other errors, assume onboarding is needed
+                router.replace("/(onboarding)");
+              }
+            }
+          } else {
+            // Token is invalid, show welcome screen
+            setIsCheckingAuth(false);
+          }
+        } else {
+          // User is not authenticated, show welcome screen
+          setIsCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        // On error, show welcome screen
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  // Show loading screen while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <View className="flex-1 bg-black justify-center items-center">
+        <ActivityIndicator size="large" color="#BBFD00" />
+        <Text className="text-white mt-4 text-lg">Loading...</Text>
+      </View>
+    );
+  }
 
   const goToNextSlide = () => {
     const nextSlideIndex = currentIndex + 1;
