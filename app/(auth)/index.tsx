@@ -142,8 +142,9 @@ export default function AuthScreen() {
         // Check if user has completed onboarding
         try {
           const { userDataService } = await import("@/api/userDataService");
-          const hasCompletedOnboarding = await userDataService.hasCompletedOnboarding();
-          
+          const hasCompletedOnboarding =
+            await userDataService.hasCompletedOnboarding();
+
           if (hasCompletedOnboarding) {
             // User has completed onboarding, go to dashboard
             router.replace("/(main)/dashboard");

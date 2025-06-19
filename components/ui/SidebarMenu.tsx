@@ -31,7 +31,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ isOpen, onClose }) => {
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
   const { setIsVisible } = useTabBar();
-  const slideAnim = useSharedValue(-300); 
+  const slideAnim = useSharedValue(-300);
   const backdropOpacity = useSharedValue(0);
 
   // Navigate to a screen and close sidebar

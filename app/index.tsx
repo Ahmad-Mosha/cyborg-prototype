@@ -60,17 +60,18 @@ export default function WelcomeScreen() {
     const checkAuthStatus = async () => {
       try {
         const isAuthenticated = await authService.isAuthenticated();
-        
+
         if (isAuthenticated) {
           // Validate if the token is still valid
           const isTokenValid = await authService.validateToken();
-          
+
           if (isTokenValid) {
             // Check if user has completed onboarding
             try {
               const { userDataService } = await import("@/api/userDataService");
-              const hasCompletedOnboarding = await userDataService.hasCompletedOnboarding();
-              
+              const hasCompletedOnboarding =
+                await userDataService.hasCompletedOnboarding();
+
               if (hasCompletedOnboarding) {
                 // User is logged in and has completed onboarding
                 router.replace("/(main)/dashboard");
@@ -80,7 +81,7 @@ export default function WelcomeScreen() {
               }
             } catch (error: any) {
               console.error("Error checking onboarding status:", error);
-              
+
               // If token is invalid (401), show welcome screen
               if (error.response?.status === 401) {
                 setIsCheckingAuth(false);

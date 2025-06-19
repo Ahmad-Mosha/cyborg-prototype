@@ -121,7 +121,7 @@ export const userDataService = {
       return false;
     } catch (error: any) {
       console.error("Error checking onboarding status:", error);
-      
+
       // If we get a 401 error, the token is invalid
       if (error.response?.status === 401) {
         // Clear invalid token and return false
@@ -130,7 +130,7 @@ export const userDataService = {
         await AsyncStorage.removeItem("user_data");
         return false;
       }
-      
+
       // For other errors (network, 404, etc.), assume no onboarding
       return false;
     }
