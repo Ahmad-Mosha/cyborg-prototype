@@ -6,6 +6,9 @@ import {
   MealPlan,
   MealPlansResponse,
   BackendMeal,
+  USDAFoodSearchResponse,
+  AddFoodToMealRequest,
+  MealFood,
 } from "@/types/diet";
 
 const nutritionService = {
@@ -220,6 +223,95 @@ const nutritionService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching today's meals:", error);
+      throw error;
+    }
+  },
+
+  // Search USDA foods
+  searchUSDAFoods: async (
+    query: string,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<USDAFoodSearchResponse> => {
+    try {
+      const response = await api.get("/foods/search", {
+        params: {
+          query,
+          page,
+          pageSize,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error searching USDA foods:", error);
+      throw error;
+    }
+  },
+
+  // Get USDA food details by ID
+  getUSDAFoodById: async (usdaId: string) => {
+    try {
+      const response = await api.get(`/foods/${usdaId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching USDA food details:", error);
+      throw error;
+    }
+  },
+
+  // Add food to meal
+  addFoodToMeal: async (
+    mealId: string,
+    foodData: AddFoodToMealRequest
+  ): Promise<MealFood> => {
+    try {
+      const response = await api.post(
+        `/nutrition/meals/${mealId}/foods`,
+        foodData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error adding food to meal:", error);
+      throw error;
+    }
+  },
+
+  // Remove food from meal
+  removeFoodFromMeal: async (mealId: string, foodId: string): Promise<void> => {
+    try {
+      await api.delete(`/nutrition/meals/${mealId}/foods/${foodId}`);
+    } catch (error) {
+      console.error("Error removing food from meal:", error);
+      throw error;
+    }
+  },
+
+  // Get foods for a meal
+  getMealFoods: async (mealId: string): Promise<MealFood[]> => {
+    try {
+      const response = await api.get(`/nutrition/meals/${mealId}/foods`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching meal foods:", error);
+      throw error;
+    }
+  },
+
+  // Update food quantity in meal
+  updateMealFood: async (
+    mealId: string,
+    foodId: string,
+    quantity: number,
+    unit: string
+  ): Promise<MealFood> => {
+    try {
+      const response = await api.put(
+        `/nutrition/meals/${mealId}/foods/${foodId}`,
+        { quantity, unit }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating meal food:", error);
       throw error;
     }
   },

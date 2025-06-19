@@ -200,5 +200,58 @@ export interface UpdateMealRequest {
   name?: string;
   targetTime?: string;
   targetCalories?: number;
-  nutritionGoals?: NutritionGoals;
+  nutritionGoals?: Partial<NutritionGoals>;
+}
+
+// USDA Food API Types
+export interface USDAFood {
+  name: string;
+  description: string;
+  usdaId: string;
+  servingSize: number;
+  servingUnit: string;
+  calories: number;
+  fat: number;
+  cholesterol: number;
+  sodium: number;
+  potassium: number;
+  carbohydrates: number;
+  fiber: number;
+  sugar: number;
+  protein: number;
+  vitamin_a: number;
+  vitamin_c: number;
+  calcium: number;
+  iron: number;
+}
+
+export interface USDAFoodSearchResponse {
+  foods: USDAFood[];
+  totalHits: number;
+  currentPage: number;
+  totalPages: number;
+}
+
+export interface AddFoodToMealRequest {
+  usdaId: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface MealFood {
+  id: string;
+  mealId: string;
+  usdaId: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+  sodium: number;
+  createdAt: string;
+  updatedAt: string;
 }

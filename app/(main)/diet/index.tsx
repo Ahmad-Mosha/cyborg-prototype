@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Meal, BackendMeal, MealPlan } from "@/types/diet";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -82,6 +82,13 @@ export default function DietScreen() {
   useEffect(() => {
     fetchTodaysMeals();
   }, []);
+
+  // Refresh data when screen comes into focus (e.g., after editing a meal)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchTodaysMeals();
+    }, [])
+  );
 
   const fetchTodaysMeals = async () => {
     try {
@@ -305,20 +312,38 @@ export default function DietScreen() {
           </Text>
           <View className="flex-row">
             {__DEV__ && (
-              <TouchableOpacity
-                onPress={() => router.push("/(main)/diet/nutrition-test")}
-                className={
-                  isDark
-                    ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
-                    : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
-                }
-              >
-                <Ionicons
-                  name="bug-outline"
-                  size={18}
-                  color={isDark ? "#BBFD00" : "#FF4B26"}
-                />
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  onPress={() => router.push("/(main)/diet/nutrition-test")}
+                  className={
+                    isDark
+                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
+                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
+                  }
+                >
+                  <Ionicons
+                    name="bug-outline"
+                    size={18}
+                    color={isDark ? "#BBFD00" : "#FF4B26"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push("/(main)/diet/food-api-test" as any)
+                  }
+                  className={
+                    isDark
+                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
+                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
+                  }
+                >
+                  <Ionicons
+                    name="search-outline"
+                    size={18}
+                    color={isDark ? "#BBFD00" : "#FF4B26"}
+                  />
+                </TouchableOpacity>
+              </>
             )}
             <TouchableOpacity
               onPress={() => router.push("/(main)/diet/meal-plans")}

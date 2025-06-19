@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,7 @@ export default function MealDetailsScreen() {
   const [mealData, setMealData] = useState<BackendMeal | null>(null);
   const [loading, setLoading] = useState(true);
   const [mealFoods, setMealFoods] = useState<any[]>([]);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
   // Extract and convert params to the appropriate types with proper null checks
   const mealId = String(params.mealId || "");
   const mealTitle = String(params.mealTitle || "Meal");
@@ -106,13 +108,15 @@ export default function MealDetailsScreen() {
   };
   const handleEditMeal = () => {
     if (mealId && mealId.length > 20) {
-      // For now, show an alert that edit feature is coming soon
-      // TODO: Create edit-meal screen or modify add-meal to handle editing
-      Alert.alert(
-        "Edit Meal",
-        "Meal editing feature is coming soon. For now, you can delete and recreate the meal.",
-        [{ text: "OK" }]
-      );
+      router.push({
+        pathname: "/(main)/diet/edit-meal" as any,
+        params: {
+          mealId,
+          mealTitle,
+          mealTime,
+          mealCalories,
+        },
+      });
     } else {
       Alert.alert("Error", "Cannot edit this meal");
     }
@@ -164,36 +168,20 @@ export default function MealDetailsScreen() {
           {/* Action buttons - only show for backend meals */}
           <View className="flex-row">
             {mealId && mealId.length > 20 && (
-              <>
-                <TouchableOpacity
-                  className={
-                    isDark
-                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
-                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
-                  }
-                  onPress={handleEditMeal}
-                >
-                  <Ionicons
-                    name="create-outline"
-                    size={18}
-                    color={isDark ? "#BBFD00" : "#FF4B26"}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className={
-                    isDark
-                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
-                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
-                  }
-                  onPress={handleDeleteMeal}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={18}
-                    color={isDark ? "#FF6B6B" : "#FF4444"}
-                  />
-                </TouchableOpacity>
-              </>
+              <TouchableOpacity
+                className={
+                  isDark
+                    ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+                    : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
+                }
+                onPress={() => setShowOptionsModal(true)}
+              >
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={18}
+                  color={isDark ? "#BBFD00" : "#FF4B26"}
+                />
+              </TouchableOpacity>
             )}
             {(!mealId || mealId.length <= 20) && <View className="w-10" />}
           </View>
@@ -427,21 +415,126 @@ export default function MealDetailsScreen() {
               </Animated.View>
             ))
           )}
-          {/* Add Food Button */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(400)}
-            className="mt-4"
-          >
-            <TouchableOpacity
-              onPress={handleAddFood}
-              className="bg-primary rounded-2xl py-4 flex-row justify-center items-center"
+
+          {/* Add More Food Button - shown when there are existing foods */}
+          {mealFoods.length > 0 && (
+            <Animated.View
+              entering={FadeInDown.delay(400).duration(400)}
+              className="mt-4"
             >
-              <Ionicons name="add-circle-outline" size={20} color="#000000" />
-              <Text className="text-black font-bold ml-2">Add Food</Text>
-            </TouchableOpacity>
-          </Animated.View>
+              <TouchableOpacity
+                onPress={handleAddFood}
+                className={
+                  isDark
+                    ? "bg-dark-700 rounded-2xl py-3 flex-row justify-center items-center border border-dark-600"
+                    : "bg-light-200 rounded-2xl py-3 flex-row justify-center items-center border border-light-300"
+                }
+              >
+                <Ionicons
+                  name="add-outline"
+                  size={18}
+                  color={isDark ? "#BBFD00" : "#FF4B26"}
+                />
+                <Text
+                  className={
+                    isDark
+                      ? "text-white font-medium ml-2"
+                      : "text-dark-900 font-medium ml-2"
+                  }
+                >
+                  Add More Food
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          )}
         </View>
       </ScrollView>
+
+      {/* Options Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showOptionsModal}
+        onRequestClose={() => setShowOptionsModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black bg-opacity-50 justify-center items-center"
+          activeOpacity={1}
+          onPress={() => setShowOptionsModal(false)}
+        >
+          <View
+            className={
+              isDark
+                ? "bg-dark-800 rounded-3xl border border-dark-700 p-6 w-64"
+                : "bg-white rounded-3xl border border-light-300 p-6 w-64 shadow-xl"
+            }
+          >
+            <Text
+              className={
+                isDark
+                  ? "text-white text-lg font-bold text-center mb-4"
+                  : "text-dark-900 text-lg font-bold text-center mb-4"
+              }
+            >
+              Meal Options
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                setShowOptionsModal(false);
+                handleEditMeal();
+              }}
+              className={
+                isDark
+                  ? "bg-dark-700 rounded-2xl py-3 flex-row items-center px-4 mb-3"
+                  : "bg-light-200 rounded-2xl py-3 flex-row items-center px-4 mb-3"
+              }
+            >
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={isDark ? "#BBFD00" : "#FF4B26"}
+              />
+              <Text
+                className={
+                  isDark
+                    ? "text-white font-medium ml-3"
+                    : "text-dark-900 font-medium ml-3"
+                }
+              >
+                Edit Meal
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setShowOptionsModal(false);
+                handleDeleteMeal();
+              }}
+              className={
+                isDark
+                  ? "bg-dark-700 rounded-2xl py-3 flex-row items-center px-4"
+                  : "bg-light-200 rounded-2xl py-3 flex-row items-center px-4"
+              }
+            >
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color={isDark ? "#FF6B6B" : "#FF4444"}
+              />
+              <Text
+                className={
+                  isDark
+                    ? "text-red-400 font-medium ml-3"
+                    : "text-red-500 font-medium ml-3"
+                }
+              >
+                Delete Meal
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
