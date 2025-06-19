@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,9 +16,10 @@ import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import foodService from "@/api/foodService";
+import nutritionService from "@/api/nutritionService";
 import { useTabBar } from "@/contexts/TabBarContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Nutrient, NutrientInfo } from "@/types/diet";
+import { Nutrient, NutrientInfo, USDAFood } from "@/types/diet";
 import BarcodeUtil from "@/utils/BarcodeUtil";
 
 export default function FoodSearchScreen() {
@@ -30,13 +32,17 @@ export default function FoodSearchScreen() {
   const [scanningType, setScanningType] = useState<"barcode" | "meal" | null>(
     null
   );
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<USDAFood[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false); // Add state for meal analysis loading
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recognizedFoods, setRecognizedFoods] = useState<string[]>([]);
   const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<CameraView>(null); // Add ref for CameraView
+  const cameraRef = useRef<CameraView>(null);
   const { setIsVisible } = useTabBar();
+  const [searchType, setSearchType] = useState<"usda" | "local">("usda");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   // Use TabBar context to control navbar visibility
   useEffect(() => {
@@ -45,9 +51,58 @@ export default function FoodSearchScreen() {
       setIsVisible(true); // Ensure tab bar is visible when component unmounts
     };
   }, [scanning, setIsVisible]);
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length > 2) {
+      setIsSearching(true);
+      try {
+        if (searchType === "usda") {
+          const response = await nutritionService.searchUSDAFoods(query, 1, 20);
+          setSearchResults(response.foods);
+          setCurrentPage(response.currentPage);
+          setTotalPages(response.totalPages);
+          setHasMore(response.currentPage < response.totalPages);
+        } else {
+          // Local search (keeping the old logic for backward compatibility)
+          const results = mockFoodDatabase.filter((food) =>
+            food.name.toLowerCase().includes(query.toLowerCase())
+          );
+          setSearchResults(results.map(mapMockToUSDAFood));
+        }
+      } catch (error) {
+        console.error("Error searching foods:", error);
+        Alert.alert("Error", "Failed to search foods. Please try again.");
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  };
 
-  // Mock food database
-  const foodDatabase = [
+  const mapMockToUSDAFood = (mockFood: any): USDAFood => ({
+    name: mockFood.name,
+    description: mockFood.brand || "",
+    usdaId: mockFood.id.toString(),
+    servingSize: 100,
+    servingUnit: "g",
+    calories: mockFood.calories,
+    fat: mockFood.fats || 0,
+    cholesterol: 0,
+    sodium: 0,
+    potassium: 0,
+    carbohydrates: mockFood.carbs || 0,
+    fiber: 0,
+    sugar: 0,
+    protein: mockFood.protein || 0,
+    vitamin_a: 0,
+    vitamin_c: 0,
+    calcium: 0,
+    iron: 0,
+  });
+
+  const mockFoodDatabase = [
     {
       id: 1,
       name: "Grilled Chicken Breast",
@@ -109,31 +164,15 @@ export default function FoodSearchScreen() {
       serving: "100g",
     },
   ];
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      setIsSearching(true);
-      // Simulate API search delay
-      setTimeout(() => {
-        const results = foodDatabase.filter((food) =>
-          food.name.toLowerCase().includes(query.toLowerCase())
-        );
-        setSearchResults(results);
-        setIsSearching(false);
-      }, 500);
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  const handleFoodSelect = (food: any) => {
+  const handleFoodSelect = (food: USDAFood) => {
     router.push({
-      pathname: "/diet/food-details",
+      pathname: "/(main)/diet/add-food-to-meal",
       params: {
-        foodId: food.id.toString(),
+        foodId: food.usdaId,
+        foodName: food.name,
         mealId,
         mealTitle,
+        foodData: JSON.stringify(food),
       },
     });
   };
@@ -189,28 +228,26 @@ export default function FoodSearchScreen() {
             (n: NutrientInfo) => n.name === name
           );
           return nutrient ? nutrient.amount : 0;
-        };
-
-        // Use the direct properties from BarcodeProductResult structure
-        const formattedResult = {
-          id: result.id || parseInt(data), // Use barcode data as fallback ID
+        }; // Use the direct properties from BarcodeProductResult structure
+        const formattedResult: USDAFood = {
           name: result.title || "Unknown Product",
-          brand: result.breadcrumbs?.[0] || "N/A", // Use first breadcrumb as brand
+          description: result.generatedText || "",
+          usdaId: (result.id || parseInt(data)).toString(),
+          servingSize: result.servings?.size || 100,
+          servingUnit: result.servings?.unit || "g",
           calories: getValueByName("Calories"),
-          protein: getValueByName("Protein"),
-          carbs: getValueByName("Carbohydrates"),
-          fats: getValueByName("Fat"),
-          saturatedFat: getValueByName("Saturated Fat"),
-          transFat: getValueByName("Trans Fat"),
+          fat: getValueByName("Fat"),
           cholesterol: getValueByName("Cholesterol"),
-          sugars: getValueByName("Sugars"),
+          sodium: getValueByName("Salt"),
+          potassium: 0, // Not available in barcode result
+          carbohydrates: getValueByName("Carbohydrates"),
           fiber: getValueByName("Fiber"),
-          salt: getValueByName("Salt"),
-          serving: `${result.servings?.size || 0}${
-            result.servings?.unit || "g"
-          }`,
-          // Add the complete nutrition object for detailed view
-          completeNutrition: result.nutrition,
+          sugar: getValueByName("Sugars"),
+          protein: getValueByName("Protein"),
+          vitamin_a: 0, // Not available in barcode result
+          vitamin_c: 0, // Not available in barcode result
+          calcium: 0, // Not available in barcode result
+          iron: 0, // Not available in barcode result
         };
         setSearchResults([formattedResult]);
         await AsyncStorage.setItem(
@@ -288,11 +325,11 @@ export default function FoodSearchScreen() {
     setScanningType(null);
     setRecognizedFoods([]);
   };
-
   const selectRecognizedFood = (foodName: string) => {
-    const food =
-      foodDatabase.find((f) => f.name === foodName) || foodDatabase[0];
-    handleFoodSelect(food);
+    const food = mockFoodDatabase.find((f: any) => f.name === foodName);
+    if (food) {
+      handleFoodSelect(mapMockToUSDAFood(food));
+    }
   };
 
   if (!permission) {
@@ -538,7 +575,8 @@ export default function FoodSearchScreen() {
                               isDark ? "text-gray-400" : "text-gray-500"
                             }
                           >
-                            {food.brand}, {food.serving}
+                            {food.description}, {food.servingSize}
+                            {food.servingUnit}
                           </Text>
                         </View>
                         <View className="items-end">
@@ -554,8 +592,8 @@ export default function FoodSearchScreen() {
                                 : "text-gray-500 text-xs"
                             }
                           >
-                            P: {food.protein}g | C: {food.carbs}g | F:{" "}
-                            {food.fats}g
+                            P: {food.protein}g | C: {food.carbohydrates}g | F:{" "}
+                            {food.fat}g
                           </Text>
                         </View>
                       </View>
@@ -626,45 +664,50 @@ export default function FoodSearchScreen() {
                   >
                     Recent Foods
                   </Text>
-                  {foodDatabase.slice(0, 3).map((food, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      className={
-                        isDark
-                          ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
-                          : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
-                      }
-                      onPress={() => handleFoodSelect(food)}
-                    >
-                      <View className="flex-row justify-between items-center">
-                        <View className="flex-1">
-                          <Text
-                            className={
-                              isDark
-                                ? "text-white font-bold"
-                                : "text-dark-900 font-bold"
-                            }
-                          >
-                            {food.name}
-                          </Text>
-                          <Text
-                            className={
-                              isDark ? "text-gray-400" : "text-gray-500"
-                            }
-                          >
-                            {food.brand}, {food.serving}
-                          </Text>
+                  {mockFoodDatabase
+                    .slice(0, 3)
+                    .map((food: any, index: number) => (
+                      <TouchableOpacity
+                        key={index}
+                        className={
+                          isDark
+                            ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+                            : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
+                        }
+                        onPress={() => handleFoodSelect(food)}
+                      >
+                        <View className="flex-row justify-between items-center">
+                          <View className="flex-1">
+                            <Text
+                              className={
+                                isDark
+                                  ? "text-white font-bold"
+                                  : "text-dark-900 font-bold"
+                              }
+                            >
+                              {food.name}
+                            </Text>
+                            <Text
+                              className={
+                                isDark ? "text-gray-400" : "text-gray-500"
+                              }
+                            >
+                              {food.brand || "Local Food"},{" "}
+                              {food.serving || "100g"}
+                            </Text>
+                          </View>
+                          <View className="items-end">
+                            <Text
+                              className={
+                                isDark ? "text-white" : "text-dark-900"
+                              }
+                            >
+                              {food.calories} kcal
+                            </Text>
+                          </View>
                         </View>
-                        <View className="items-end">
-                          <Text
-                            className={isDark ? "text-white" : "text-dark-900"}
-                          >
-                            {food.calories} kcal
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                      </TouchableOpacity>
+                    ))}
                 </View>
 
                 <View className="px-6">

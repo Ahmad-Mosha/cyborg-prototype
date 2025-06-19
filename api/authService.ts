@@ -80,8 +80,10 @@ export const authService = {
       // Call logout endpoint if your API supports it
       // await api.post(API_ENDPOINTS.AUTH.LOGOUT);
 
+      // Remove all auth-related data from storage
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("user");
+      await AsyncStorage.removeItem("user_data");
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
@@ -97,6 +99,21 @@ export const authService = {
       return !!token;
     } catch (error) {
       console.error("Auth check error:", error);
+      return false;
+    }
+  },
+
+  /**
+   * Validate if the current token is still valid
+   * For now, we'll assume the token is valid if it exists
+   * Token validity will be checked when making actual API calls
+   */
+  async validateToken(): Promise<boolean> {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      return !!token;
+    } catch (error: any) {
+      console.error("Token validation error:", error);
       return false;
     }
   },

@@ -30,6 +30,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { authService } from "../../api";
 import { LoginDTO, RegisterDTO } from "../../types/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const buttonSpacing = width < 350 ? 15 : 25; // Adjust spacing based on screen width
@@ -136,10 +137,26 @@ export default function AuthScreen() {
           password,
         };
 
-        await authService.login(loginData);
+        const response = await authService.login(loginData);
 
-        // Navigate to main app or onboarding based on first login
-        router.push("/(main)/dashboard");
+        // Check if user has completed onboarding
+        try {
+          const { userDataService } = await import("@/api/userDataService");
+          const hasCompletedOnboarding =
+            await userDataService.hasCompletedOnboarding();
+
+          if (hasCompletedOnboarding) {
+            // User has completed onboarding, go to dashboard
+            router.replace("/(main)/dashboard");
+          } else {
+            // User needs to complete onboarding
+            router.replace("/(onboarding)");
+          }
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+          // On error, assume onboarding is needed
+          router.replace("/(onboarding)");
+        }
       } else {
         // Handle registration
         const registerData: RegisterDTO = {
@@ -151,12 +168,9 @@ export default function AuthScreen() {
 
         const response = await authService.register(registerData);
 
-        // If it's the user's first login, navigate to onboarding
-        if (response.user.isFirstLogin) {
-          router.push("/(onboarding)");
-        } else {
-          router.push("/(main)/dashboard");
-        }
+        // For new registrations, always go to onboarding
+        // since they haven't set up their profile yet
+        router.replace("/(onboarding)");
       }
     } catch (err: any) {
       console.error("Auth error:", err);

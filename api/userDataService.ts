@@ -96,6 +96,45 @@ export const userDataService = {
       throw error;
     }
   },
+
+  /**
+   * Check if user has completed onboarding
+   * Returns true if user has profile data (indicating onboarding completion)
+   */
+  async hasCompletedOnboarding(): Promise<boolean> {
+    try {
+      // First check local storage
+      const localUserData = await AsyncStorage.getItem("user_data");
+      if (localUserData) {
+        const parsedData = JSON.parse(localUserData);
+        // Check if essential onboarding data exists
+        return !!(parsedData && parsedData.age && parsedData.gender);
+      }
+
+      // If no local data, check server
+      const serverUserData = await this.getUserData();
+      if (serverUserData) {
+        // Check if essential onboarding data exists
+        return !!(serverUserData.age && serverUserData.gender);
+      }
+
+      return false;
+    } catch (error: any) {
+      console.error("Error checking onboarding status:", error);
+
+      // If we get a 401 error, the token is invalid
+      if (error.response?.status === 401) {
+        // Clear invalid token and return false
+        await AsyncStorage.removeItem("access_token");
+        await AsyncStorage.removeItem("user");
+        await AsyncStorage.removeItem("user_data");
+        return false;
+      }
+
+      // For other errors (network, 404, etc.), assume no onboarding
+      return false;
+    }
+  },
 };
 
 export default userDataService;
