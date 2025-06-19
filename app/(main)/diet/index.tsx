@@ -41,8 +41,10 @@ const transformBackendMealToUIFormat = (backendMeal: BackendMeal): Meal => {
     title: backendMeal.name,
     calories: backendMeal.targetCalories,
     items:
-      backendMeal.mealFoods?.length > 0
-        ? backendMeal.mealFoods.map((food: any) => food.name).join(", ")
+      backendMeal.mealFoods && backendMeal.mealFoods.length > 0
+        ? backendMeal.mealFoods
+            .map((food: any) => food.food?.name || food.name)
+            .join(", ")
         : "No items added yet",
     complete: backendMeal.eaten,
     color: mealColors[backendMeal.name] || "#FF4500",
@@ -137,20 +139,50 @@ export default function DietScreen() {
     let targetFats = 0;
 
     backendMeals.forEach((meal) => {
-      if (meal.eaten && meal.nutrients) {
-        totalProtein += meal.nutrients.protein || 0;
-        totalCarbs += meal.nutrients.carbohydrates || 0;
-        totalFats += meal.nutrients.fat || 0;
+      // Calculate actual consumed nutrition from mealFoods
+      if (meal.mealFoods && meal.mealFoods.length > 0) {
+        meal.mealFoods.forEach((mealFood: any) => {
+          if (mealFood.nutrients) {
+            totalProtein += mealFood.nutrients.protein || 0;
+            totalCarbs += mealFood.nutrients.carbohydrates || 0;
+            totalFats += mealFood.nutrients.fat || 0;
+          }
+        });
       }
-      targetProtein += meal.nutritionGoals.protein;
-      targetCarbs += meal.nutritionGoals.carbs;
-      targetFats += meal.nutritionGoals.fat;
+
+      // Set realistic targets if nutrition goals are 0
+      if (meal.nutritionGoals.protein > 0) {
+        targetProtein += meal.nutritionGoals.protein;
+      } else {
+        // Default protein target based on meal type
+        targetProtein += (meal.targetCalories * 0.2) / 4; // 20% of calories from protein
+      }
+
+      if (meal.nutritionGoals.carbs > 0) {
+        targetCarbs += meal.nutritionGoals.carbs;
+      } else {
+        // Default carbs target based on meal type
+        targetCarbs += (meal.targetCalories * 0.5) / 4; // 50% of calories from carbs
+      }
+
+      if (meal.nutritionGoals.fat > 0) {
+        targetFats += meal.nutritionGoals.fat;
+      } else {
+        // Default fat target based on meal type
+        targetFats += (meal.targetCalories * 0.3) / 9; // 30% of calories from fat
+      }
     });
 
     setNutritionStats({
-      protein: { current: totalProtein, target: targetProtein },
-      carbs: { current: totalCarbs, target: targetCarbs },
-      fats: { current: totalFats, target: targetFats },
+      protein: {
+        current: Math.round(totalProtein),
+        target: Math.round(targetProtein),
+      },
+      carbs: {
+        current: Math.round(totalCarbs),
+        target: Math.round(targetCarbs),
+      },
+      fats: { current: Math.round(totalFats), target: Math.round(targetFats) },
     });
   };
 
@@ -311,40 +343,6 @@ export default function DietScreen() {
             {t("diet.dietPlan", "Diet Plan")}
           </Text>
           <View className="flex-row">
-            {__DEV__ && (
-              <>
-                <TouchableOpacity
-                  onPress={() => router.push("/(main)/diet/nutrition-test")}
-                  className={
-                    isDark
-                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
-                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
-                  }
-                >
-                  <Ionicons
-                    name="bug-outline"
-                    size={18}
-                    color={isDark ? "#BBFD00" : "#FF4B26"}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push("/(main)/diet/food-api-test" as any)
-                  }
-                  className={
-                    isDark
-                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
-                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
-                  }
-                >
-                  <Ionicons
-                    name="search-outline"
-                    size={18}
-                    color={isDark ? "#BBFD00" : "#FF4B26"}
-                  />
-                </TouchableOpacity>
-              </>
-            )}
             <TouchableOpacity
               onPress={() => router.push("/(main)/diet/meal-plans")}
               className={
@@ -381,9 +379,7 @@ export default function DietScreen() {
       <View className="flex-row px-6 mb-5">
         {[
           { id: "meals", label: t("diet.meals", "Meals") },
-          { id: "nutrition", label: t("diet.nutrition", "Nutrition") },
           { id: "water", label: t("diet.water", "Water") },
-          { id: "supplements", label: t("diet.supplements", "Supplements") },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.id}
@@ -781,48 +777,169 @@ export default function DietScreen() {
           </>
         )}
 
-        {activeTab === "nutrition" && (
-          <View className="px-6 items-center justify-center">
-            <Text
-              className={
-                isDark ? "text-white text-lg" : "text-dark-900 text-lg"
-              }
-            >
-              {t(
-                "diet.nutritionTrackingComingSoon",
-                "Nutrition tracking coming soon"
-              )}
-            </Text>
-          </View>
-        )}
-
-        {activeTab === "water" && (
-          <View className="px-6 items-center justify-center">
-            <Text
-              className={
-                isDark ? "text-white text-lg" : "text-dark-900 text-lg"
-              }
-            >
-              {t("diet.waterTrackingComingSoon", "Water tracking coming soon")}
-            </Text>
-          </View>
-        )}
-
-        {activeTab === "supplements" && (
-          <View className="px-6 items-center justify-center">
-            <Text
-              className={
-                isDark ? "text-white text-lg" : "text-dark-900 text-lg"
-              }
-            >
-              {t(
-                "diet.supplementsTrackingComingSoon",
-                "Supplements tracking coming soon"
-              )}
-            </Text>
-          </View>
-        )}
+        {activeTab === "water" && <WaterTrackingTab isDark={isDark} t={t} />}
       </ScrollView>
     </View>
   );
 }
+
+// Water Tracking Component
+const WaterTrackingTab = ({ isDark, t }: { isDark: boolean; t: any }) => {
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [dailyGoal] = useState(2000); // 2L daily goal
+  const [glassSize, setGlassSize] = useState(250); // 250ml per glass
+
+  const addWater = (amount: number) => {
+    setWaterIntake((prev) => Math.min(prev + amount, dailyGoal + 500));
+  };
+
+  const removeWater = (amount: number) => {
+    setWaterIntake((prev) => Math.max(prev - amount, 0));
+  };
+
+  const percentage = Math.round((waterIntake / dailyGoal) * 100);
+  const glassesConsumed = Math.floor(waterIntake / glassSize);
+
+  return (
+    <View className="px-6">
+      {/* Daily Goal Progress */}
+      <View
+        className={`rounded-2xl p-6 mb-6 ${
+          isDark
+            ? "bg-dark-800 border border-dark-700"
+            : "bg-white border border-light-300 shadow"
+        }`}
+      >
+        <Text
+          className={`text-lg font-bold mb-4 ${
+            isDark ? "text-white" : "text-dark-900"
+          }`}
+        >
+          Daily Water Goal
+        </Text>
+
+        {/* Progress Circle */}
+        <View className="items-center mb-6">
+          <View className="relative">
+            <View className="w-32 h-32 rounded-full border-8 border-gray-300 items-center justify-center">
+              <View
+                className="absolute w-32 h-32 rounded-full border-8 border-[#2196F3]"
+                style={{
+                  borderBottomColor:
+                    percentage >= 25 ? "#2196F3" : "transparent",
+                  borderRightColor:
+                    percentage >= 50 ? "#2196F3" : "transparent",
+                  borderTopColor: percentage >= 75 ? "#2196F3" : "transparent",
+                  borderLeftColor:
+                    percentage >= 100 ? "#2196F3" : "transparent",
+                  transform: [{ rotate: "-90deg" }],
+                }}
+              />
+              <View className="items-center">
+                <Text
+                  className={`text-2xl font-bold ${
+                    isDark ? "text-white" : "text-dark-900"
+                  }`}
+                >
+                  {waterIntake}ml
+                </Text>
+                <Text
+                  className={`text-sm ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {percentage}%
+                </Text>
+              </View>
+            </View>
+          </View>
+          <Text
+            className={`text-center mt-2 ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            Goal: {dailyGoal}ml | {glassesConsumed} glasses
+          </Text>
+        </View>
+
+        {/* Quick Add Buttons */}
+        <Text
+          className={`text-base font-medium mb-3 ${
+            isDark ? "text-white" : "text-dark-900"
+          }`}
+        >
+          Quick Add
+        </Text>
+        <View className="flex-row justify-between mb-4">
+          <TouchableOpacity
+            onPress={() => addWater(250)}
+            className="bg-[#2196F3] rounded-xl px-4 py-3 flex-1 mr-2"
+          >
+            <Text className="text-white text-center font-medium">
+              Glass (250ml)
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => addWater(500)}
+            className="bg-[#2196F3] rounded-xl px-4 py-3 flex-1 ml-2"
+          >
+            <Text className="text-white text-center font-medium">
+              Bottle (500ml)
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-row justify-between">
+          <TouchableOpacity
+            onPress={() => addWater(750)}
+            className="bg-[#2196F3] rounded-xl px-4 py-3 flex-1 mr-2"
+          >
+            <Text className="text-white text-center font-medium">
+              Large (750ml)
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => removeWater(250)}
+            className={`rounded-xl px-4 py-3 flex-1 ml-2 ${
+              isDark
+                ? "bg-dark-700 border border-dark-600"
+                : "bg-light-200 border border-light-300"
+            }`}
+          >
+            <Text
+              className={`text-center font-medium ${
+                isDark ? "text-white" : "text-dark-900"
+              }`}
+            >
+              Remove 250ml
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Water Tips */}
+      <View
+        className={`rounded-2xl p-4 ${
+          isDark
+            ? "bg-dark-800 border border-dark-700"
+            : "bg-white border border-light-300 shadow"
+        }`}
+      >
+        <Text
+          className={`text-base font-medium mb-2 ${
+            isDark ? "text-white" : "text-dark-900"
+          }`}
+        >
+          💡 Hydration Tips
+        </Text>
+        <Text
+          className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
+        >
+          • Drink a glass of water when you wake up{"\n"}• Have water before
+          each meal{"\n"}• Keep a water bottle nearby{"\n"}• Set reminders
+          throughout the day
+        </Text>
+      </View>
+    </View>
+  );
+};

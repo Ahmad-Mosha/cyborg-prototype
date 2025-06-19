@@ -161,7 +161,7 @@ export interface BackendMeal {
   eaten: boolean;
   eatenAt: string | null;
   nutrients: MealNutrients;
-  mealFoods: any[]; // We'll define this later when implementing food management
+  mealFoods?: MealFoodResponse[]; // Updated to use proper type
 }
 
 export interface MealPlan {
@@ -254,4 +254,62 @@ export interface MealFood {
   sodium: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// New types for backend response
+export interface MealFoodResponse {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  servingSize: number;
+  servingUnit: string;
+  nutrients: {
+    calories: number;
+    protein: number;
+    carbohydrates: number;
+    fat: number;
+    fiber: number;
+    sugar: number;
+    sodium: number;
+    cholesterol: number;
+  };
+  meal: BackendMeal;
+  food: {
+    id: string;
+    name: string;
+    description: string | null;
+    calories: number;
+    fat: number;
+    cholesterol: number | null;
+    sodium: number | null;
+    potassium: number | null;
+    carbohydrates: number;
+    fiber: number | null;
+    sugar: number | null;
+    protein: number;
+    vitamin_a: number | null;
+    vitamin_c: number | null;
+    calcium: number | null;
+    iron: number | null;
+    servingSize: number;
+    servingUnit: string;
+    usdaId: string | null;
+    isCustom: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface AddCustomFoodRequest {
+  name: string;
+  calories: number;
+  quantity: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface AddFoodSimpleRequest {
+  foodId: string;
+  quantity: number;
 }

@@ -9,6 +9,9 @@ import {
   USDAFoodSearchResponse,
   AddFoodToMealRequest,
   MealFood,
+  MealFoodResponse,
+  AddCustomFoodRequest,
+  AddFoodSimpleRequest,
 } from "@/types/diet";
 
 const nutritionService = {
@@ -286,11 +289,26 @@ const nutritionService = {
     }
   },
 
-  // Get foods for a meal
-  getMealFoods: async (mealId: string): Promise<MealFood[]> => {
+  // Get meal details with foods
+  getMeal: async (mealId: string): Promise<BackendMeal> => {
     try {
-      const response = await api.get(`/nutrition/meals/${mealId}/foods`);
+      console.log("🔍 Fetching meal:", mealId);
+      const response = await api.get(`/nutrition/meals/${mealId}`);
+      console.log("✅ Meal fetched successfully:", response.data);
       return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching meal:", error);
+      throw error;
+    }
+  },
+
+  // Get foods for a meal (legacy - meal foods are now included in getMeal)
+  getMealFoods: async (mealId: string): Promise<MealFoodResponse[]> => {
+    try {
+      // Get the full meal which includes mealFoods
+      const response = await api.get(`/nutrition/meals/${mealId}`);
+      const meal = response.data;
+      return meal.mealFoods || [];
     } catch (error) {
       console.error("Error fetching meal foods:", error);
       throw error;
@@ -312,6 +330,77 @@ const nutritionService = {
       return response.data;
     } catch (error) {
       console.error("Error updating meal food:", error);
+      throw error;
+    }
+  },
+
+  // Add custom food to meal (simple)
+  addCustomFoodToMeal: async (
+    mealId: string,
+    foodData: AddCustomFoodRequest
+  ): Promise<MealFoodResponse> => {
+    try {
+      console.log("🍽️ Adding custom food to meal:", { mealId, foodData });
+      const response = await api.post(
+        `/nutrition/meals/${mealId}/add-custom-food-simple`,
+        foodData
+      );
+      console.log("✅ Custom food added successfully:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error adding custom food to meal:", error);
+      if (error.response) {
+        console.error("❌ Response status:", error.response.status);
+        console.error("❌ Response data:", error.response.data);
+      }
+      throw error;
+    }
+  },
+
+  // Add food to meal (fast endpoint)
+  addFoodToMealFast: async (
+    mealId: string,
+    foodData: AddFoodSimpleRequest
+  ): Promise<MealFoodResponse> => {
+    try {
+      console.log("🚀 Adding food to meal (fast):", { mealId, foodData });
+      const response = await api.post(
+        `/nutrition/meals/${mealId}/add-food-fast`,
+        foodData
+      );
+      console.log("✅ Food added successfully (fast):", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error adding food to meal (fast):", error);
+      throw error;
+    }
+  },
+
+  // Add food to meal (simple)
+  addFoodToMealSimple: async (
+    mealId: string,
+    foodData: AddFoodSimpleRequest
+  ): Promise<MealFoodResponse> => {
+    try {
+      const response = await api.post(
+        `/nutrition/meals/${mealId}/add-food-simple`,
+        foodData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error adding food to meal:", error);
+      throw error;
+    }
+  },
+
+  // Delete food from meal
+  deleteMealFood: async (mealId: string, mealFoodId: string): Promise<void> => {
+    try {
+      console.log("🗑️ Deleting meal food:", { mealId, mealFoodId });
+      await api.delete(`/nutrition/meal-foods/${mealFoodId}`);
+      console.log("✅ Meal food deleted successfully");
+    } catch (error) {
+      console.error("❌ Error deleting meal food:", error);
       throw error;
     }
   },

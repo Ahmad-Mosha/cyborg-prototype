@@ -60,10 +60,11 @@ export default function AddFoodToMealScreen() {
 
     try {
       setAdding(true);
-      await nutritionService.addFoodToMeal(mealId, {
-        usdaId: foodData.usdaId,
+
+      // Use the new fast endpoint
+      await nutritionService.addFoodToMealFast(mealId, {
+        foodId: foodData.usdaId,
         quantity: quantityNum,
-        unit: unit,
       });
 
       Alert.alert("Success", `${foodName} has been added to ${mealTitle}`, [
