@@ -10,6 +10,14 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 // Import our i18n configuration
 import "@/utils/i18n/i18nConfig";
 
+// Disable error overlay in development
+import { LogBox } from "react-native";
+
+if (__DEV__) {
+  // Disable all logs and warnings on screen (still shows in console)
+  LogBox.ignoreAllLogs(true);
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

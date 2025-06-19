@@ -126,10 +126,9 @@ export default function FoodSearchScreen() {
       setSearchResults([]);
     }
   };
-
   const handleFoodSelect = (food: any) => {
     router.push({
-      pathname: "/diet/food-details",
+      pathname: "/(main)/diet/food-details",
       params: {
         foodId: food.id.toString(),
         mealId,

@@ -1,59 +1,137 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/contexts/ThemeContext";
+import { nutritionService } from "@/api";
+import { BackendMeal } from "@/types/diet";
 
 export default function MealDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
   const params = useLocalSearchParams();
+  const [mealData, setMealData] = useState<BackendMeal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [mealFoods, setMealFoods] = useState<any[]>([]);
+  // Extract and convert params to the appropriate types with proper null checks
+  const mealId = String(params.mealId || "");
+  const mealTitle = String(params.mealTitle || "Meal");
+  const mealTime = String(params.mealTime || "");
+  const mealCalories = Number(params.mealCalories) || 0;
+  const mealItems = String(params.mealItems || "");
+  const mealColor = String(params.mealColor || "#FF4500");
 
-  // Extract and convert params to the appropriate types
-  // Add fallback values to prevent undefined errors
-  const mealId = (params.mealId as string) || "";
-  const mealTitle = (params.mealTitle as string) || "Meal";
-  const mealTime = (params.mealTime as string) || "";
-  const mealCalories = (params.mealCalories as string) || "0";
-  const mealItems = (params.mealItems as string) || "";
-  const mealColor = (params.mealColor as string) || "#FF4500"; // Default orange color
+  // Debug: Log all params to console to ensure they're strings
+  console.log("Meal params:", {
+    mealId,
+    mealTitle,
+    mealTime,
+    mealCalories,
+    mealItems,
+    mealColor,
+  });
 
-  // Mock food items data for this meal
-  const foodItems = [
-    {
-      name: "Protein Shake",
-      portion: "1 scoop (30g)",
-      calories: 120,
-      protein: 24,
-      carbs: 3,
-      fats: 1.5,
-    },
-    {
-      name: "Scrambled Eggs",
-      portion: "2 large eggs",
-      calories: 180,
-      protein: 12,
-      carbs: 0,
-      fats: 14,
-    },
-    {
-      name: "Oatmeal",
-      portion: "1 cup cooked",
-      calories: 150,
-      protein: 5,
-      carbs: 27,
-      fats: 3,
-    },
-  ];
+  useEffect(() => {
+    const fetchMealData = async () => {
+      try {
+        setLoading(true);
+        // If mealId looks like a UUID (backend ID), try to fetch meal data
+        if (mealId && mealId.length > 20) {
+          // TODO: Add getMeal endpoint to API service when available
+          // For now, we'll use the passed params
+          console.log("Would fetch meal data for ID:", mealId);
+        }
 
+        // Set food items to empty for now (future food management system)
+        setMealFoods([]);
+      } catch (error) {
+        console.error("Error fetching meal data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMealData();
+  }, [mealId]);
   const handleAddFood = () => {
     router.push({
-      pathname: "/diet/food-search",
+      pathname: "/(main)/diet/food-search",
       params: { mealId, mealTitle },
     });
   };
+
+  const handleDeleteMeal = () => {
+    Alert.alert(
+      "Delete Meal",
+      `Are you sure you want to delete "${mealTitle}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              if (mealId && mealId.length > 20) {
+                await nutritionService.deleteMeal(mealId);
+                Alert.alert("Success", "Meal deleted successfully", [
+                  {
+                    text: "OK",
+                    onPress: () => router.back(),
+                  },
+                ]);
+              } else {
+                Alert.alert("Error", "Cannot delete this meal");
+              }
+            } catch (error) {
+              console.error("Error deleting meal:", error);
+              Alert.alert("Error", "Failed to delete meal");
+            }
+          },
+        },
+      ]
+    );
+  };
+  const handleEditMeal = () => {
+    if (mealId && mealId.length > 20) {
+      // For now, show an alert that edit feature is coming soon
+      // TODO: Create edit-meal screen or modify add-meal to handle editing
+      Alert.alert(
+        "Edit Meal",
+        "Meal editing feature is coming soon. For now, you can delete and recreate the meal.",
+        [{ text: "OK" }]
+      );
+    } else {
+      Alert.alert("Error", "Cannot edit this meal");
+    }
+  };
+
+  if (loading) {
+    return (
+      <View
+        className={`flex-1 justify-center items-center ${
+          isDark ? "bg-dark-900" : "bg-light-100"
+        }`}
+      >
+        <ActivityIndicator size="large" color="#FF4B26" />
+        <Text className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+          Loading meal details...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View className={isDark ? "flex-1 bg-dark-900" : "flex-1 bg-light-100"}>
@@ -82,21 +160,43 @@ export default function MealDetailsScreen() {
             }
           >
             {mealTitle}
-          </Text>
-          <TouchableOpacity
-            className={
-              isDark
-                ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
-                : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
-            }
-            onPress={() => {}}
-          >
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={20}
-              color={isDark ? "#FFFFFF" : "#121212"}
-            />
-          </TouchableOpacity>
+          </Text>{" "}
+          {/* Action buttons - only show for backend meals */}
+          <View className="flex-row">
+            {mealId && mealId.length > 20 && (
+              <>
+                <TouchableOpacity
+                  className={
+                    isDark
+                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center mr-2"
+                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300 mr-2"
+                  }
+                  onPress={handleEditMeal}
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={18}
+                    color={isDark ? "#BBFD00" : "#FF4B26"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={
+                    isDark
+                      ? "bg-dark-800 w-10 h-10 rounded-full items-center justify-center"
+                      : "bg-white w-10 h-10 rounded-full items-center justify-center shadow border border-light-300"
+                  }
+                  onPress={handleDeleteMeal}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={isDark ? "#FF6B6B" : "#FF4444"}
+                  />
+                </TouchableOpacity>
+              </>
+            )}
+            {(!mealId || mealId.length <= 20) && <View className="w-10" />}
+          </View>
         </View>
       </View>
 
@@ -130,8 +230,9 @@ export default function MealDetailsScreen() {
                 />
               </View>
               <View>
+                {" "}
                 <Text className={isDark ? "text-gray-400" : "text-gray-500"}>
-                  {mealTime}
+                  {mealTime || "No time set"}
                 </Text>
                 <Text
                   className={
@@ -140,7 +241,7 @@ export default function MealDetailsScreen() {
                       : "text-dark-900 text-xl font-bold"
                   }
                 >
-                  {mealTitle}
+                  {mealTitle || "Untitled Meal"}
                 </Text>
               </View>
             </View>
@@ -167,7 +268,7 @@ export default function MealDetailsScreen() {
                       : "text-dark-900 text-lg font-bold"
                   }
                 >
-                  {mealCalories}
+                  {mealCalories || 0}
                 </Text>
               </View>
               <View className="items-center">
@@ -238,60 +339,94 @@ export default function MealDetailsScreen() {
                   : "text-dark-900 text-lg font-bold"
               }
             >
-              Food Items
+              Food Items{" "}
             </Text>
           </View>
-
-          {foodItems.map((item, index) => (
-            <Animated.View
-              key={index}
-              entering={FadeInDown.delay(150 + index * 100).duration(400)}
-              className={
-                isDark
-                  ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
-                  : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
-              }
-            >
-              <View className="flex-row justify-between items-center">
-                <View className="flex-1">
-                  <Text
-                    className={
-                      isDark
-                        ? "text-white font-bold"
-                        : "text-dark-900 font-bold"
-                    }
-                  >
-                    {item.name}
-                  </Text>
-                  <Text className={isDark ? "text-gray-400" : "text-gray-500"}>
-                    {item.portion}
-                  </Text>
-                </View>
-                <View className="items-end">
-                  <Text className={isDark ? "text-white" : "text-dark-900"}>
-                    {item.calories} kcal
-                  </Text>
-                  <View className="flex-row">
-                    <Text className="text-primary mr-1">
-                      P: {item.protein}g
-                    </Text>
-                    <Text className="text-[#FF9800] mr-1">
-                      C: {item.carbs}g
-                    </Text>
-                    <Text className="text-[#2196F3]">F: {item.fats}g</Text>
-                  </View>
-                </View>
-                <TouchableOpacity className="ml-3">
-                  <Ionicons
-                    name="create-outline"
-                    size={20}
-                    color={isDark ? "#777777" : "#999999"}
-                  />
-                </TouchableOpacity>
+          {mealFoods.length === 0 ? (
+            <View className="items-center py-10">
+              <View
+                className={
+                  isDark
+                    ? "w-16 h-16 bg-dark-800 rounded-full items-center justify-center mb-4"
+                    : "w-16 h-16 bg-light-200 rounded-full items-center justify-center mb-4"
+                }
+              >
+                <Ionicons
+                  name="restaurant-outline"
+                  size={32}
+                  color={isDark ? "#666" : "#999"}
+                />
               </View>
-            </Animated.View>
-          ))}
-
+              <Text
+                className={
+                  isDark
+                    ? "text-gray-400 text-center mb-4"
+                    : "text-gray-600 text-center mb-4"
+                }
+              >
+                No food items added yet
+              </Text>
+              <TouchableOpacity
+                onPress={handleAddFood}
+                className="bg-primary rounded-2xl py-3 px-6 flex-row items-center"
+              >
+                <Ionicons name="add-circle-outline" size={18} color="#000000" />
+                <Text className="text-black font-bold ml-2">Add Food</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            mealFoods.map((item, index) => (
+              <Animated.View
+                key={index}
+                entering={FadeInDown.delay(150 + index * 100).duration(400)}
+                className={
+                  isDark
+                    ? "bg-dark-800 rounded-2xl border border-dark-700 p-4 mb-3"
+                    : "bg-white rounded-2xl border border-light-300 p-4 mb-3 shadow"
+                }
+              >
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-1">
+                    <Text
+                      className={
+                        isDark
+                          ? "text-white font-bold"
+                          : "text-dark-900 font-bold"
+                      }
+                    >
+                      {item.name}
+                    </Text>
+                    <Text
+                      className={isDark ? "text-gray-400" : "text-gray-500"}
+                    >
+                      {item.portion}
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className={isDark ? "text-white" : "text-dark-900"}>
+                      {item.calories} kcal
+                    </Text>
+                    <View className="flex-row">
+                      <Text className="text-primary mr-1">
+                        P: {item.protein}g
+                      </Text>
+                      <Text className="text-[#FF9800] mr-1">
+                        C: {item.carbs}g
+                      </Text>
+                      <Text className="text-[#2196F3]">F: {item.fats}g</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity className="ml-3">
+                    <Ionicons
+                      name="create-outline"
+                      size={20}
+                      color={isDark ? "#777777" : "#999999"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            ))
+          )}
           {/* Add Food Button */}
           <Animated.View
             entering={FadeInDown.delay(400).duration(400)}
