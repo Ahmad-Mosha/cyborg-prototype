@@ -1,82 +1,171 @@
-import { Post, Comment } from "@/types/community";
+import {
+  Post,
+  Comment,
+  CreatePostData,
+  CreateCommentData,
+} from "@/types/community";
 import api from "./apiConfig";
+import { likeStateManager } from "@/utils/likeStateManager";
 
+interface GetPostsParams {
+  page?: number;
+  limit?: number;
+  type?: string;
+  status?: string;
+}
+
+interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 export const communityService = {
-  async createPost(postData: Post) {
-
+  async createPost(postData: CreatePostData) {
     try {
-      const post = api.post("/community/posts", postData)
-      return post
+      const response = await api.post("/community/posts", postData);
+      return response.data;
     } catch (error: any) {
-      console.log("An error occured while trying to create a post")
-      throw error
+      console.error("Error creating post:", error);
+      throw error;
     }
-
   },
 
-  async getPosts() {
+  async getPosts(params: GetPostsParams = {}) {
     try {
-      const posts = api.get("/community/posts")
-      return posts
+      const { page = 1, limit = 10, type, status } = params;
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(type && { type }),
+        ...(status && { status }),
+      });
+
+      const response = await api.get(`/community/posts?${queryParams}`);
+      console.log("Posts response sample:", response.data.items?.[0]); // Debug log
+      
+      // Add isLiked state to each post based on local state
+      const postsWithLikeState = response.data.items.map((post: Post) => ({
+        ...post,
+        isLiked: post.isLiked ?? likeStateManager.isPostLiked(post.id),
+      }));
+
+      return {
+        ...response.data,
+        items: postsWithLikeState,
+      } as PaginatedResponse<Post>;
     } catch (error: any) {
-      console.log("An error occured while trying to fetch posts")
-      throw error
-
+      console.error("Error fetching posts:", error);
+      throw error;
     }
   },
 
-  async getPost({ id }: Post) {
+  async getPost(id: string) {
     try {
-      const post = api.get(`/community/post/${id}`)
-      return post
+      const response = await api.get(`/community/posts/${id}`);
+      return response.data;
     } catch (error: any) {
-      console.log("An error occured while trying to fetch post")
-      throw error
-
+      console.error("Error fetching post:", error);
+      throw error;
     }
   },
 
-  async updatePost({ postId, values }: { postId: string; values: Post }) {
+  async updatePost(postId: string, values: Partial<CreatePostData>) {
     try {
-      const updatedPost = api.put(`/community/posts/${postId}`, values)
-
-    } catch (e) {
-      throw new Error(`An Error occured while trying to update the post`)
+      const response = await api.put(`/community/posts/${postId}`, values);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error updating post:", error);
+      throw error;
     }
   },
 
-  async deletePost({ id }: Post) {
+  async deletePost(id: string) {
     try {
-      return api.delete(`/community/posts/${id}`)
-    } catch (e) {
-      throw new Error(`An Error occured while trying to delete the post`)
+      const response = await api.delete(`/community/posts/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error deleting post:", error);
+      throw error;
     }
   },
 
-  async createComment({ id, values }: { id: string, values: Comment }) {
+  async toggleLike(targetType: "posts" | "comments", id: string) {
     try {
-      return api.create(`/posts/${id}/comments`, values)
-    } catch (e) {
-      throw new Error("An Error occured while trying to create a comment")
+      const response = await api.post(
+        `/community/${targetType}/${id}/toggle-like`
+      );
+      
+      // Update local state based on server response
+      const liked = response.data.liked;
+      if (targetType === "posts") {
+        likeStateManager.setPostLiked(id, liked);
+      } else {
+        likeStateManager.setCommentLiked(id, liked);
+      }
+      
+      console.log(`${targetType} ${id} like toggled to:`, liked); // Debug log
+      return response.data;
+    } catch (error: any) {
+      console.error("Error toggling like:", error);
+      throw error;
     }
-
   },
 
-  async getComments({ id }: Post) {
+  async createComment(postId: string, commentData: CreateCommentData) {
     try {
-      return api.get(`/posts/${id}/comments`)
-    } catch (e) {
-      throw new Error(`An error occured while trying to fetch the posts`)
+      const response = await api.post(
+        `/community/posts/${postId}/comments`,
+        commentData
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error creating comment:", error);
+      throw error;
     }
   },
 
-  async deleteComment({ id }: Post) {
+  async getComments(postId: string) {
     try {
-      return api.delete(`comments/${id}`)
+      const response = await api.get(`/community/posts/${postId}/comments`);
+      console.log("Comments response:", response.data); // Debug log
+      
+      let comments: Comment[] = [];
+      
+      // Handle different response structures
+      if (Array.isArray(response.data)) {
+        comments = response.data;
+      } else if (response.data.items) {
+        comments = response.data.items;
+      } else if (response.data.comments) {
+        comments = response.data.comments;
+      } else {
+        console.warn("Unexpected comments response structure:", response.data);
+        return [];
+      }
 
-    } catch (e) {
-      throw new Error(`An error occured while trying to delete the comment`)
+      // Add isLiked state to each comment based on local state
+      const commentsWithLikeState = comments.map((comment: Comment) => ({
+        ...comment,
+        isLiked: comment.isLiked ?? likeStateManager.isCommentLiked(comment.id),
+      }));
+
+      return commentsWithLikeState;
+    } catch (error: any) {
+      console.error("Error fetching comments:", error);
+      throw error;
     }
-  }
-}
+  },
+
+  async deleteComment(id: string) {
+    try {
+      const response = await api.delete(`/community/comments/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error deleting comment:", error);
+      throw error;
+    }
+  },
+};
