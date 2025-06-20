@@ -4,12 +4,40 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { CommentProps } from "@/types/community";
 
+// Helper function to format date
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMinutes = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60)
+  );
+
+  if (diffInMinutes < 1) return "Just now";
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+  return `${Math.floor(diffInMinutes / 1440)}d ago`;
+};
+
+// Helper function to get initials
+const getInitials = (firstName: string, lastName: string) => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+};
+
 // Memoized Comment Component
 const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
   const { isDark } = useTheme();
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [showReplies, setShowReplies] = useState(false);
+
+  const authorName = `${comment.author.firstName} ${comment.author.lastName}`;
+  const authorInitials = getInitials(
+    comment.author.firstName,
+    comment.author.lastName
+  );
+  const avatarUrl =
+    comment.author.profilePictureUrl ||
+    `https://via.placeholder.com/100/121212/BBFD00?text=${authorInitials}`;
 
   return (
     <View
@@ -21,8 +49,11 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
     >
       <View className="flex-row mt-2">
         <Image
-          source={{ uri: comment.user.avatar }}
+          source={{ uri: avatarUrl }}
           className="w-8 h-8 rounded-full"
+          defaultSource={{
+            uri: `https://via.placeholder.com/100/121212/BBFD00?text=${authorInitials}`,
+          }}
         />
         <View className="flex-1 ml-2">
           <View
@@ -36,9 +67,9 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
                   isDark ? "text-white font-bold" : "text-gray-900 font-bold"
                 }
               >
-                {comment.user.name}
+                {authorName}
               </Text>
-              {comment.user.isVerified && (
+              {comment.author.isActive && (
                 <Ionicons
                   name="checkmark-circle"
                   size={14}
@@ -46,12 +77,11 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
                   className="ml-1"
                 />
               )}
-            </View>
+            </View>{" "}
             <Text className={isDark ? "text-white mt-1" : "text-gray-800 mt-1"}>
               {comment.content}
             </Text>
           </View>
-
           {/* Comment actions */}
           <View className="flex-row items-center mt-1">
             <Text
@@ -59,7 +89,7 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
                 isDark ? "text-gray-400 text-xs" : "text-gray-500 text-xs"
               }
             >
-              {comment.time}
+              {formatTime(comment.createdAt)}
             </Text>
             <TouchableOpacity
               className="ml-3 flex-row items-center"
@@ -76,7 +106,7 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
               >
                 Like
               </Text>
-              {comment.likes > 0 && (
+              {comment.likesCount > 0 && (
                 <Text
                   className={
                     isDark
@@ -84,7 +114,7 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
                       : "text-gray-500 text-xs ml-1"
                   }
                 >
-                  ({comment.likes})
+                  ({comment.likesCount})
                 </Text>
               )}
             </TouchableOpacity>
@@ -102,7 +132,6 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
               </Text>
             </TouchableOpacity>
           </View>
-
           {/* Reply input */}
           {showReplyInput && (
             <View
@@ -143,7 +172,6 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
               </TouchableOpacity>
             </View>
           )}
-
           {/* Show replies toggle */}
           {comment.replies && comment.replies.length > 0 && (
             <TouchableOpacity
@@ -158,95 +186,108 @@ const Comment = memo(({ comment, postId, onLike, onReply }: CommentProps) => {
                     }`}
               </Text>
             </TouchableOpacity>
-          )}
-
+          )}{" "}
           {/* Replies */}
           {showReplies && comment.replies && comment.replies.length > 0 && (
             <View className="mt-2">
-              {comment.replies.map((reply) => (
-                <View key={reply.id} className="flex-row mt-2">
-                  <Image
-                    source={{ uri: reply.user.avatar }}
-                    className="w-6 h-6 rounded-full"
-                  />
-                  <View className="flex-1 ml-2">
-                    <View
-                      className={`p-2 rounded-2xl ${
-                        isDark ? "bg-dark-700" : "bg-gray-100"
-                      }`}
-                    >
-                      <View className="flex-row items-center">
+              {comment.replies.map((reply) => {
+                const replyAuthorName = `${reply.author.firstName} ${reply.author.lastName}`;
+                const replyAuthorInitials = getInitials(
+                  reply.author.firstName,
+                  reply.author.lastName
+                );
+                const replyAvatarUrl =
+                  reply.author.profilePictureUrl ||
+                  `https://via.placeholder.com/100/121212/BBFD00?text=${replyAuthorInitials}`;
+
+                return (
+                  <View key={reply.id} className="flex-row mt-2">
+                    <Image
+                      source={{ uri: replyAvatarUrl }}
+                      className="w-6 h-6 rounded-full"
+                      defaultSource={{
+                        uri: `https://via.placeholder.com/100/121212/BBFD00?text=${replyAuthorInitials}`,
+                      }}
+                    />
+                    <View className="flex-1 ml-2">
+                      <View
+                        className={`p-2 rounded-2xl ${
+                          isDark ? "bg-dark-700" : "bg-gray-100"
+                        }`}
+                      >
+                        <View className="flex-row items-center">
+                          <Text
+                            className={
+                              isDark
+                                ? "text-white font-bold text-xs"
+                                : "text-gray-900 font-bold text-xs"
+                            }
+                          >
+                            {replyAuthorName}
+                          </Text>
+                          {reply.author.isActive && (
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={12}
+                              color="#BBFD00"
+                              className="ml-1"
+                            />
+                          )}
+                        </View>
                         <Text
                           className={
                             isDark
-                              ? "text-white font-bold text-xs"
-                              : "text-gray-900 font-bold text-xs"
+                              ? "text-white text-xs mt-1"
+                              : "text-gray-800 text-xs mt-1"
                           }
                         >
-                          {reply.user.name}
+                          {reply.content}
                         </Text>
-                        {reply.user.isVerified && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={12}
-                            color="#BBFD00"
-                            className="ml-1"
-                          />
-                        )}
                       </View>
-                      <Text
-                        className={
-                          isDark
-                            ? "text-white text-xs mt-1"
-                            : "text-gray-800 text-xs mt-1"
-                        }
-                      >
-                        {reply.content}
-                      </Text>
-                    </View>
 
-                    {/* Reply actions */}
-                    <View className="flex-row items-center mt-1">
-                      <Text
-                        className={
-                          isDark
-                            ? "text-gray-400 text-xs"
-                            : "text-gray-500 text-xs"
-                        }
-                      >
-                        {reply.time}
-                      </Text>
-                      <TouchableOpacity
-                        className="ml-3 flex-row items-center"
-                        onPress={() => onLike(reply.id, true, comment.id)}
-                      >
+                      {/* Reply actions */}
+                      <View className="flex-row items-center mt-1">
                         <Text
                           className={
-                            reply.isLiked
-                              ? "text-primary font-semibold text-xs"
-                              : isDark
+                            isDark
                               ? "text-gray-400 text-xs"
                               : "text-gray-500 text-xs"
                           }
                         >
-                          Like
+                          {formatTime(reply.createdAt)}
                         </Text>
-                        {reply.likes > 0 && (
+                        <TouchableOpacity
+                          className="ml-3 flex-row items-center"
+                          onPress={() => onLike(reply.id)}
+                        >
                           <Text
                             className={
-                              isDark
-                                ? "text-gray-400 text-xs ml-1"
-                                : "text-gray-500 text-xs ml-1"
+                              reply.isLiked
+                                ? "text-primary font-semibold text-xs"
+                                : isDark
+                                ? "text-gray-400 text-xs"
+                                : "text-gray-500 text-xs"
                             }
                           >
-                            ({reply.likes})
+                            Like
                           </Text>
-                        )}
-                      </TouchableOpacity>
+                          {reply.likesCount > 0 && (
+                            <Text
+                              className={
+                                isDark
+                                  ? "text-gray-400 text-xs ml-1"
+                                  : "text-gray-500 text-xs ml-1"
+                              }
+                            >
+                              ({reply.likesCount})
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
         </View>

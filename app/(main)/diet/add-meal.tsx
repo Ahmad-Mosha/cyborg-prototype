@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,68 +22,14 @@ export default function AddMealScreen() {
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdMeal, setCreatedMeal] = useState<any>(null);
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Get meal plan ID from params
   const { planId, planName } = useLocalSearchParams();
 
-  // Time picker state
-  const [selectedHour, setSelectedHour] = useState(12);
-  const [selectedMinute, setSelectedMinute] = useState(0);
-  const [selectedPeriod, setSelectedPeriod] = useState("PM");
-
-  // Helper function to convert 12-hour time to 24-hour format
-  const formatTo24Hour = (time12: string): string => {
-    try {
-      if (!time12 || !time12.includes(" ")) {
-        return "12:00";
-      }
-      const [time, period] = time12.split(" ");
-      if (!time || !period) {
-        return "12:00";
-      }
-      const [hours, minutes] = time.split(":").map(Number);
-      if (isNaN(hours) || isNaN(minutes)) {
-        return "12:00";
-      }
-      let hours24 = hours;
-
-      if (period === "PM" && hours !== 12) {
-        hours24 += 12;
-      } else if (period === "AM" && hours === 12) {
-        hours24 = 0;
-      }
-
-      return `${hours24.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    } catch {
-      return "12:00";
-    }
-  };
-
-  // Helper function to convert 24-hour time to 12-hour with AM/PM
-  const formatTo12Hour = (time24: string): string => {
-    try {
-      if (!time24 || !time24.includes(":")) {
-        return "12:00 PM";
-      }
-      const [hours, minutes] = time24.split(":").map(Number);
-      if (isNaN(hours) || isNaN(minutes)) {
-        return "12:00 PM";
-      }
-      const period = hours >= 12 ? "PM" : "AM";
-      const hours12 = hours % 12 || 12;
-      return `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
-    } catch {
-      return "12:00 PM";
-    }
-  };
-
   // Form state
   const [formData, setFormData] = useState<CreateMealRequest>({
     name: "",
-    targetTime: "12:00", // This will be displayed as "12:00 PM" in the UI
+    targetTime: "12:00",
     targetCalories: 500,
     nutritionGoals: {
       protein: 25,
@@ -92,22 +37,6 @@ export default function AddMealScreen() {
       fat: 30,
     },
   });
-
-  // Initialize time picker values from form data
-  useEffect(() => {
-    if (formData.targetTime) {
-      const time12 = formatTo12Hour(formData.targetTime);
-      const [time, period] = time12.split(" ");
-      if (time && period) {
-        const [hours, minutes] = time.split(":").map(Number);
-        if (!isNaN(hours) && !isNaN(minutes)) {
-          setSelectedHour(hours);
-          setSelectedMinute(minutes);
-          setSelectedPeriod(period);
-        }
-      }
-    }
-  }, [formData.targetTime]);
 
   const handleCreateMeal = async () => {
     if (!formData.name.trim()) {
@@ -269,31 +198,21 @@ export default function AddMealScreen() {
                     : "text-gray-600 text-sm mb-2"
                 }
               >
-                Target Time
+                Target Time (HH:MM)
               </Text>
-              <TouchableOpacity
-                onPress={() => setShowTimePicker(true)}
+              <TextInput
                 className={
                   isDark
-                    ? "bg-dark-700 border border-dark-600 rounded-xl p-4"
-                    : "bg-light-200 border border-light-300 rounded-xl p-4"
+                    ? "bg-dark-700 border border-dark-600 rounded-xl p-4 text-white"
+                    : "bg-light-200 border border-light-300 rounded-xl p-4 text-dark-900"
                 }
-              >
-                <View className="flex-row items-center justify-between">
-                  <Text
-                    className={
-                      isDark ? "text-white text-base" : "text-dark-900 text-base"
-                    }
-                  >
-                    {formatTo12Hour(formData.targetTime)}
-                  </Text>
-                  <Ionicons
-                    name="time-outline"
-                    size={20}
-                    color={isDark ? "#BBFD00" : "#FF4B26"}
-                  />
-                </View>
-              </TouchableOpacity>
+                placeholder="12:00"
+                placeholderTextColor={isDark ? "#666" : "#999"}
+                value={formData.targetTime}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, targetTime: text })
+                }
+              />
             </View>
 
             {/* Target Calories */}
@@ -662,233 +581,6 @@ export default function AddMealScreen() {
           </Animated.View>
         </View>
       )}
-
-      {/* Time Picker Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showTimePicker}
-        onRequestClose={() => setShowTimePicker(false)}
-      >
-        <View className="flex-1 bg-black bg-opacity-50 justify-end">
-          <View
-            className={
-              isDark
-                ? "bg-dark-800 rounded-t-3xl border-t border-dark-700 p-6"
-                : "bg-white rounded-t-3xl border-t border-light-300 p-6"
-            }
-          >
-            <Text
-              className={
-                isDark
-                  ? "text-white text-lg font-bold text-center mb-6"
-                  : "text-dark-900 text-lg font-bold text-center mb-6"
-              }
-            >
-              Select Time
-            </Text>
-
-            {/* Time Picker */}
-            <View className="flex-row justify-center items-center mb-6">
-              {/* Hour Picker */}
-              <View className="items-center mx-4">
-                <Text
-                  className={
-                    isDark
-                      ? "text-gray-400 text-sm mb-2"
-                      : "text-gray-600 text-sm mb-2"
-                  }
-                >
-                  Hour
-                </Text>
-                <ScrollView
-                  className="h-32"
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ alignItems: "center" }}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                    <TouchableOpacity
-                      key={hour}
-                      onPress={() => setSelectedHour(hour)}
-                      className={`w-12 h-12 rounded-full items-center justify-center my-1 ${
-                        selectedHour === hour
-                          ? "bg-primary"
-                          : isDark
-                          ? "bg-dark-700"
-                          : "bg-light-200"
-                      }`}
-                    >
-                      <Text
-                        className={
-                          selectedHour === hour
-                            ? "text-black font-bold"
-                            : isDark
-                            ? "text-white"
-                            : "text-dark-900"
-                        }
-                      >
-                        {hour}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              <Text
-                className={
-                  isDark
-                    ? "text-white text-2xl font-bold"
-                    : "text-dark-900 text-2xl font-bold"
-                }
-              >
-                :
-              </Text>
-
-              {/* Minute Picker */}
-              <View className="items-center mx-4">
-                <Text
-                  className={
-                    isDark
-                      ? "text-gray-400 text-sm mb-2"
-                      : "text-gray-600 text-sm mb-2"
-                  }
-                >
-                  Minute
-                </Text>
-                <ScrollView
-                  className="h-32"
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ alignItems: "center" }}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i * 5).map((minute) => (
-                    <TouchableOpacity
-                      key={minute}
-                      onPress={() => setSelectedMinute(minute)}
-                      className={`w-12 h-12 rounded-full items-center justify-center my-1 ${
-                        selectedMinute === minute
-                          ? "bg-primary"
-                          : isDark
-                          ? "bg-dark-700"
-                          : "bg-light-200"
-                      }`}
-                    >
-                      <Text
-                        className={
-                          selectedMinute === minute
-                            ? "text-black font-bold"
-                            : isDark
-                            ? "text-white"
-                            : "text-dark-900"
-                        }
-                      >
-                        {minute.toString().padStart(2, "0")}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {/* AM/PM Picker */}
-              <View className="items-center mx-4">
-                <Text
-                  className={
-                    isDark
-                      ? "text-gray-400 text-sm mb-2"
-                      : "text-gray-600 text-sm mb-2"
-                  }
-                >
-                  Period
-                </Text>
-                <View className="h-32 justify-center">
-                  {["AM", "PM"].map((period) => (
-                    <TouchableOpacity
-                      key={period}
-                      onPress={() => setSelectedPeriod(period)}
-                      className={`w-16 h-12 rounded-full items-center justify-center my-2 ${
-                        selectedPeriod === period
-                          ? "bg-primary"
-                          : isDark
-                          ? "bg-dark-700"
-                          : "bg-light-200"
-                      }`}
-                    >
-                      <Text
-                        className={
-                          selectedPeriod === period
-                            ? "text-black font-bold"
-                            : isDark
-                            ? "text-white"
-                            : "text-dark-900"
-                        }
-                      >
-                        {period}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </View>
-
-            {/* Selected Time Display */}
-            <View
-              className={
-                isDark
-                  ? "bg-dark-700 rounded-xl p-4 mb-4"
-                  : "bg-light-200 rounded-xl p-4 mb-4"
-              }
-            >
-              <Text
-                className={
-                  isDark
-                    ? "text-white text-center text-lg font-bold"
-                    : "text-dark-900 text-center text-lg font-bold"
-                }
-              >
-                Selected: {selectedHour}:
-                {selectedMinute.toString().padStart(2, "0")} {selectedPeriod}
-              </Text>
-            </View>
-
-            {/* Buttons */}
-            <View className="flex-row justify-between">
-              <TouchableOpacity
-                onPress={() => setShowTimePicker(false)}
-                className={
-                  isDark
-                    ? "bg-dark-700 rounded-2xl py-3 px-6 flex-1 mr-2"
-                    : "bg-light-200 rounded-2xl py-3 px-6 flex-1 mr-2"
-                }
-              >
-                <Text
-                  className={
-                    isDark
-                      ? "text-white font-medium text-center"
-                      : "text-dark-900 font-medium text-center"
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  const time12 = `${selectedHour}:${selectedMinute
-                    .toString()
-                    .padStart(2, "0")} ${selectedPeriod}`;
-                  const time24 = formatTo24Hour(time12);
-                  setFormData({ ...formData, targetTime: time24 });
-                  setShowTimePicker(false);
-                }}
-                className="bg-primary rounded-2xl py-3 px-6 flex-1 ml-2"
-              >
-                <Text className="text-black font-bold text-center">
-                  Confirm
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
