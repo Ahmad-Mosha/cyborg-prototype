@@ -18,6 +18,7 @@ interface WorkoutHomeScreenProps {
   onStartTemplateWorkout: (template: WorkoutTemplate) => void;
   onCreateTemplate: () => void;
   onSettingsPress: () => void;
+  onGenerateAIWorkout: () => void; // Add this new prop
   // Template form modal props
   showCreateTemplateModal: boolean;
   setShowCreateTemplateModal: (show: boolean) => void;
@@ -54,6 +55,7 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
   onStartTemplateWorkout,
   onCreateTemplate,
   onSettingsPress,
+  onGenerateAIWorkout, // Add this parameter
   showCreateTemplateModal,
   setShowCreateTemplateModal,
   newTemplate,
@@ -124,13 +126,29 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
           }`}
         >
           {t("workout.quickStart", "Quick start")}
-        </Text>
+        </Text>{" "}
         <TouchableOpacity
-          className="h-12 bg-primary rounded-2xl justify-center items-center mt-2 mb-6"
+          className="h-12 bg-primary rounded-2xl justify-center items-center mt-2 mb-3"
           onPress={onStartEmptyWorkout}
         >
           <Text className="text-dark-900 font-bold">
             {t("workout.startEmptyWorkout", "START AN EMPTY WORKOUT")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className={`h-12 rounded-2xl justify-center items-center mb-6 border-2 flex-row ${
+            isDark ? "border-primary bg-dark-800" : "border-primary bg-white"
+          }`}
+          onPress={onGenerateAIWorkout}
+        >
+          <Ionicons
+            name="sparkles"
+            size={20}
+            color="#9333EA"
+            style={{ marginRight: 8 }}
+          />
+          <Text className="text-primary font-bold">
+            {t("workout.generateAIWorkout", "GENERATE AI WORKOUT PLAN")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -277,6 +295,18 @@ const WorkoutHomeScreen: React.FC<WorkoutHomeScreenProps> = ({
         onAddSelected={() => setShowExerciseSelectionForTemplate(false)}
         forTemplate={true}
       />
+
+      {/* AI Workout Plan Button - New Section */}
+      <View className="px-6 mb-4">
+        <TouchableOpacity
+          className="h-12 bg-success rounded-2xl justify-center items-center"
+          onPress={onGenerateAIWorkout}
+        >
+          <Text className="text-dark-900 font-bold">
+            {t("workout.generateAIWorkout", "GENERATE AI WORKOUT PLAN")}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

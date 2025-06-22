@@ -80,10 +80,15 @@ export const authService = {
       // Call logout endpoint if your API supports it
       // await api.post(API_ENDPOINTS.AUTH.LOGOUT);
 
-      // Remove all auth-related data from storage
+      // Remove all auth-related and user-specific data from storage
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("user");
       await AsyncStorage.removeItem("user_data");
+      await AsyncStorage.removeItem("favorites"); // Clear exercise favorites
+      await AsyncStorage.removeItem("scannedBarcodeResult"); // Clear scanned food data
+
+      // Note: We keep theme and language preferences as they are user preferences
+      // that should persist across login sessions
     } catch (error) {
       console.error("Logout error:", error);
       throw error;

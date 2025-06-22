@@ -11,7 +11,12 @@ import {
   WeightUnit,
   SetType,
 } from "@/types/workout";
-import { WorkoutHomeScreen, ActiveWorkoutScreen } from "@/components/workout";
+import {
+  WorkoutHomeScreen,
+  ActiveWorkoutScreen,
+  AIWorkoutGeneratorModal,
+} from "@/components/workout";
+import type { WorkoutPreferences } from "@/components/workout/AIWorkoutGeneratorModal";
 
 const WorkoutScreen = () => {
   const { setIsVisible } = useTabBar();
@@ -110,6 +115,8 @@ const WorkoutScreen = () => {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
 
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
+  const [showAIWorkoutModal, setShowAIWorkoutModal] = useState(false);
+  const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
   const [newTemplate, setNewTemplate] = useState<NewTemplate>({
     name: "",
     description: "",
@@ -200,13 +207,153 @@ const WorkoutScreen = () => {
           style: "cancel",
         },
         {
-          text: "Start Now",
+          text: "Start",
           onPress: () => startTemplateWorkout(template),
         },
-      ],
-      "barbell-outline",
-      "#BBFD00"
+      ]
     );
+  };
+
+  // Handle AI workout generation
+  const handleGenerateAIWorkout = () => {
+    setShowAIWorkoutModal(true);
+  };
+
+  // Generate workout with AI based on preferences
+  const generateAIWorkout = async (preferences: WorkoutPreferences) => {
+    setIsGeneratingWorkout(true);
+
+    try {
+      // Simulate AI generation (in a real app, this would call an API)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Create a mock AI-generated workout template
+      const aiWorkoutExercises: Exercise[] = getAIExercises(preferences);
+
+      const aiTemplate: WorkoutTemplate = {
+        id: `ai-${Date.now()}`,
+        name: `AI ${preferences.goal.replace("_", " ").toUpperCase()} Workout`,
+        exercises: aiWorkoutExercises,
+        lastUsed: new Date(),
+      };
+
+      // Add to templates
+      setTemplates((prev) => [aiTemplate, ...prev]);
+
+      // Close modal and show success
+      setShowAIWorkoutModal(false);
+      setIsGeneratingWorkout(false);
+
+      // Ask if user wants to start the workout immediately
+      showAlert(
+        "Workout Generated!",
+        `Your AI-generated "${aiTemplate.name}" workout is ready with ${aiTemplate.exercises.length} exercises. Would you like to start it now?`,
+        [
+          {
+            text: "Save for Later",
+            style: "cancel",
+          },
+          {
+            text: "Start Now",
+            onPress: () => startTemplateWorkout(aiTemplate),
+          },
+        ]
+      );
+    } catch (error) {
+      setIsGeneratingWorkout(false);
+      showAlert("Error", "Failed to generate workout. Please try again.");
+    }
+  };
+
+  // Get AI exercises based on preferences (mock implementation)
+  const getAIExercises = (preferences: WorkoutPreferences): Exercise[] => {
+    const exerciseDatabase = {
+      chest: [
+        { id: "ai-1", name: "Bench Press (Barbell)", category: "Chest" },
+        { id: "ai-2", name: "Incline Dumbbell Press", category: "Chest" },
+        { id: "ai-3", name: "Chest Fly (Cable)", category: "Chest" },
+        { id: "ai-4", name: "Push-ups", category: "Chest" },
+      ],
+      back: [
+        { id: "ai-5", name: "Lat Pulldown", category: "Back" },
+        { id: "ai-6", name: "Barbell Row", category: "Back" },
+        { id: "ai-7", name: "Pull-ups", category: "Back" },
+        { id: "ai-8", name: "Cable Row", category: "Back" },
+      ],
+      shoulders: [
+        {
+          id: "ai-9",
+          name: "Shoulder Press (Dumbbell)",
+          category: "Shoulders",
+        },
+        { id: "ai-10", name: "Lateral Raise", category: "Shoulders" },
+        { id: "ai-11", name: "Rear Delt Fly", category: "Shoulders" },
+      ],
+      arms: [
+        { id: "ai-12", name: "Bicep Curl (Dumbbell)", category: "Arms" },
+        { id: "ai-13", name: "Tricep Pushdown", category: "Arms" },
+        { id: "ai-14", name: "Hammer Curl", category: "Arms" },
+      ],
+      legs: [
+        { id: "ai-15", name: "Squat (Barbell)", category: "Legs" },
+        { id: "ai-16", name: "Leg Press", category: "Legs" },
+        { id: "ai-17", name: "Leg Curl", category: "Legs" },
+        { id: "ai-18", name: "Calf Raise", category: "Legs" },
+      ],
+      core: [
+        { id: "ai-19", name: "Plank", category: "Core" },
+        { id: "ai-20", name: "Russian Twist", category: "Core" },
+        { id: "ai-21", name: "Bicycle Crunches", category: "Core" },
+      ],
+    };
+
+    let selectedExercises: Exercise[] = [];
+
+    // Select exercises based on target muscles and equipment
+    preferences.targetMuscles.forEach((muscle) => {
+      const muscleExercises =
+        exerciseDatabase[muscle as keyof typeof exerciseDatabase] || [];
+      // Filter by equipment availability and add 1-2 exercises per muscle group
+      const filteredExercises = muscleExercises.filter((exercise) => {
+        if (
+          preferences.equipment.includes("bodyweight") &&
+          exercise.name.includes("Push-ups")
+        )
+          return true;
+        if (
+          preferences.equipment.includes("barbell") &&
+          exercise.name.includes("Barbell")
+        )
+          return true;
+        if (
+          preferences.equipment.includes("dumbbell") &&
+          exercise.name.includes("Dumbbell")
+        )
+          return true;
+        if (
+          preferences.equipment.includes("cable") &&
+          exercise.name.includes("Cable")
+        )
+          return true;
+        if (
+          preferences.equipment.includes("machine") &&
+          (exercise.name.includes("Machine") ||
+            exercise.name.includes("Press") ||
+            exercise.name.includes("Pulldown"))
+        )
+          return true;
+        return true; // Default include if no specific equipment match
+      });
+
+      // Add 1-2 exercises per muscle group based on duration
+      const exerciseCount = preferences.duration >= 60 ? 2 : 1;
+      selectedExercises.push(...filteredExercises.slice(0, exerciseCount));
+    });
+
+    return selectedExercises.slice(
+      0,
+      Math.min(8, Math.floor(preferences.duration / 10))
+    ); // Limit based on duration
   };
 
   // Add selected exercises to workout
@@ -586,39 +733,51 @@ const WorkoutScreen = () => {
 
   // Main template selection screen
   return (
-    <WorkoutHomeScreen
-      templates={templates}
-      exampleTemplates={exampleTemplates}
-      onStartEmptyWorkout={startEmptyWorkout}
-      onStartTemplateWorkout={confirmStartWorkout}
-      onCreateTemplate={() => setShowCreateTemplateModal(true)}
-      onSettingsPress={() => router.push("/(main)/settings")}
-      showCreateTemplateModal={showCreateTemplateModal}
-      setShowCreateTemplateModal={setShowCreateTemplateModal}
-      newTemplate={newTemplate}
-      onTemplateChange={handleTemplateChange}
-      selectedTemplateExercises={selectedTemplateExercises}
-      onRemoveExerciseFromTemplate={handleRemoveExerciseFromTemplate}
-      onShowExerciseSelectionForTemplate={() =>
-        setShowExerciseSelectionForTemplate(true)
-      }
-      onCreateTemplateSubmit={handleCreateTemplate}
-      isTemplateFormValid={
-        newTemplate.name.trim() !== "" && selectedTemplateExercises.length > 0
-      }
-      showTemplateOptionsModal={showTemplateOptionsModal}
-      setShowTemplateOptionsModal={setShowTemplateOptionsModal}
-      selectedTemplate={selectedTemplate}
-      onTemplateOptionsPress={handleTemplateOptions}
-      onEditTemplate={handleEditTemplate}
-      onDeleteTemplate={handleDeleteTemplate}
-      showExerciseSelectionForTemplate={showExerciseSelectionForTemplate}
-      setShowExerciseSelectionForTemplate={setShowExerciseSelectionForTemplate}
-      exercises={filteredExercises}
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onSelectExerciseForTemplate={handleSelectExerciseForTemplate}
-    />
+    <>
+      <WorkoutHomeScreen
+        templates={templates}
+        exampleTemplates={exampleTemplates}
+        onStartEmptyWorkout={startEmptyWorkout}
+        onStartTemplateWorkout={confirmStartWorkout}
+        onCreateTemplate={() => setShowCreateTemplateModal(true)}
+        onSettingsPress={() => router.push("/(main)/settings")}
+        onGenerateAIWorkout={handleGenerateAIWorkout}
+        showCreateTemplateModal={showCreateTemplateModal}
+        setShowCreateTemplateModal={setShowCreateTemplateModal}
+        newTemplate={newTemplate}
+        onTemplateChange={handleTemplateChange}
+        selectedTemplateExercises={selectedTemplateExercises}
+        onRemoveExerciseFromTemplate={handleRemoveExerciseFromTemplate}
+        onShowExerciseSelectionForTemplate={() =>
+          setShowExerciseSelectionForTemplate(true)
+        }
+        onCreateTemplateSubmit={handleCreateTemplate}
+        isTemplateFormValid={
+          newTemplate.name.trim() !== "" && selectedTemplateExercises.length > 0
+        }
+        showTemplateOptionsModal={showTemplateOptionsModal}
+        setShowTemplateOptionsModal={setShowTemplateOptionsModal}
+        selectedTemplate={selectedTemplate}
+        onTemplateOptionsPress={handleTemplateOptions}
+        onEditTemplate={handleEditTemplate}
+        onDeleteTemplate={handleDeleteTemplate}
+        showExerciseSelectionForTemplate={showExerciseSelectionForTemplate}
+        setShowExerciseSelectionForTemplate={
+          setShowExerciseSelectionForTemplate
+        }
+        exercises={filteredExercises}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSelectExerciseForTemplate={handleSelectExerciseForTemplate}
+      />
+
+      <AIWorkoutGeneratorModal
+        visible={showAIWorkoutModal}
+        onClose={() => setShowAIWorkoutModal(false)}
+        onGenerateWorkout={generateAIWorkout}
+        isGenerating={isGeneratingWorkout}
+      />
+    </>
   );
 };
 

@@ -6,3 +6,4 @@ export { default as TemplateFormModal } from "./TemplateFormModal";
 export { default as TemplateOptionsModal } from "./TemplateOptionsModal";
 export { default as ActiveWorkoutScreen } from "./ActiveWorkoutScreen";
 export { default as WorkoutHomeScreen } from "./WorkoutHomeScreen";
+export { default as AIWorkoutGeneratorModal } from "./AIWorkoutGeneratorModal";
